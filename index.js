@@ -13,7 +13,7 @@ const COMMANDS_FILE = path.join(GEMINI_DIR, 'commands');
 const init = () => {
   console.log(
     chalk.green(
-      figlet.textSync('Gemini CLI', {
+      figlet.textSync('Gemini Add Custom Commands CLI', {
         font: 'Standard',
         horizontalLayout: 'default',
         verticalLayout: 'default',
@@ -22,17 +22,35 @@ const init = () => {
   );
 };
 
+const listCommands = () => {
+  const listFiles = (dir) => {
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    entries.forEach(entry => {
+      const fullPath = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        listFiles(fullPath);
+      } else {
+        const commandContent = fs.readFileSync(fullPath, 'utf8');
+        console.log(`${entry.name}=${commandContent}`);
+      }
+    });
+  };
+
+  if (fs.existsSync(COMMANDS_FILE) && fs.lstatSync(COMMANDS_FILE).isDirectory()) {
+    console.log(chalk.green('Available commands:'));
+    listFiles(COMMANDS_FILE);
+  } else {
+    console.log(chalk.yellow('No commands found.'));
+  }
+};
+
 const askQuestions = () => {
   const questions = [
     {
-      name: 'COMMAND_NAME',
-      type: 'input',
-      message: 'What is the name of the command?',
-    },
-    {
-      name: 'COMMAND_VALUE',
-      type: 'input',
-      message: 'What is the command to execute?',
+      name: 'MENU_CHOICE',
+      type: 'list',
+      message: 'What would you like to do?',
+      choices: ['Add new command', 'List all available commands'],
     },
   ];
   return inquirer.prompt(questions);
@@ -44,22 +62,47 @@ const run = async () => {
 
   // ask questions
   const answers = await askQuestions();
-  const { COMMAND_NAME, COMMAND_VALUE } = answers;
+  const { MENU_CHOICE } = answers;
 
-  // Create .gemini directory if it doesn't exist
-  if (!fs.existsSync(GEMINI_DIR)) {
-    fs.mkdirSync(GEMINI_DIR);
+  switch (MENU_CHOICE) {
+    case 'Add new command':
+      const addCommandAnswers = await inquirer.prompt([
+        {
+          name: 'COMMAND_NAME',
+          type: 'input',
+          message: 'What is the name of the command?',
+        },
+        {
+          name: 'COMMAND_VALUE',
+          type: 'input',
+          message: 'What is the command to execute?',
+        },
+      ]);
+      const { COMMAND_NAME, COMMAND_VALUE } = addCommandAnswers;
+
+      // Create .gemini directory if it doesn't exist
+      if (!fs.existsSync(GEMINI_DIR)) {
+        fs.mkdirSync(GEMINI_DIR);
+      }
+
+      // Create commands directory if it doesn't exist
+      if (!fs.existsSync(COMMANDS_FILE)) {
+        fs.mkdirSync(COMMANDS_FILE);
+      }
+
+      // Write the command to a new file
+      fs.writeFileSync(path.join(COMMANDS_FILE, COMMAND_NAME), COMMAND_VALUE);
+
+      console.log(
+        chalk.green(
+          `Successfully added the command: ${COMMAND_NAME}`
+        )
+      );
+      break;
+    case 'List all available commands':
+      listCommands();
+      break;
   }
-
-  // Write the command to the commands file
-  const command = `${COMMAND_NAME}=${COMMAND_VALUE}\n`;
-  fs.appendFileSync(COMMANDS_FILE, command);
-
-  console.log(
-    chalk.green(
-      `Successfully added the command: ${COMMAND_NAME}`
-    )
-  );
 };
 
 run();
