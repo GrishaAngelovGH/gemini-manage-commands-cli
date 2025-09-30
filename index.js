@@ -60,6 +60,76 @@ ${parsedCommand.prompt}`));
   }
 };
 
+const restoreCommands = async () => {
+  const backupDir = path.join(GEMINI_DIR, 'commands_backup');
+
+  if (!fs.existsSync(backupDir)) {
+    console.log(chalk.yellow('No backup found to restore from.'));
+    return;
+  }
+
+  const scopeAnswers = await inquirer.prompt([
+    {
+      name: 'RESTORE_SCOPE',
+      type: 'list',
+      message: 'What would you like to restore?',
+      choices: ['All commands (merge with existing)', 'A single command (merge)', 'Go Back'],
+    },
+  ]);
+
+  if (scopeAnswers.RESTORE_SCOPE === 'Go Back') {
+    console.log(chalk.yellow('Restore cancelled.'));
+    return;
+  }
+
+  if (scopeAnswers.RESTORE_SCOPE === 'All commands (merge with existing)') {
+    const confirmAnswers = await inquirer.prompt([
+      {
+        name: 'CONFIRM_RESTORE',
+        type: 'confirm',
+        message: 'Are you sure you want to merge ALL commands from backup? This will add new commands and overwrite existing ones.',
+        default: false,
+      },
+    ]);
+
+    if (confirmAnswers.CONFIRM_RESTORE) {
+      try {
+        // Ensure commands directory exists
+        if (!fs.existsSync(COMMANDS_FILE)) {
+          fs.mkdirSync(COMMANDS_FILE, { recursive: true });
+        }
+
+        // Recursive merge function
+        const mergeDirectories = (source, destination) => {
+          const entries = fs.readdirSync(source, { withFileTypes: true });
+          entries.forEach(entry => {
+            const sourcePath = path.join(source, entry.name);
+            const destinationPath = path.join(destination, entry.name);
+
+            if (entry.isDirectory()) {
+              if (!fs.existsSync(destinationPath)) {
+                fs.mkdirSync(destinationPath, { recursive: true });
+              }
+              mergeDirectories(sourcePath, destinationPath);
+            } else {
+              fs.copyFileSync(sourcePath, destinationPath); // Overwrites if exists, copies if new
+            }
+          });
+        };
+
+        mergeDirectories(backupDir, COMMANDS_FILE);
+        console.log(chalk.green('Successfully merged all commands from backup.'));
+      } catch (e) {
+        console.log(chalk.red(`Error merging commands: ${e.message}`));
+      }
+    } else {
+      console.log(chalk.yellow('Restore cancelled.'));
+    }
+  } else if (scopeAnswers.RESTORE_SCOPE === 'A single command (merge)') {
+    console.log(chalk.yellow('Restoring a single command is not yet implemented. Returning to main menu.'));
+  }
+};
+
 const backupCommands = () => {
   const backupDir = path.join(GEMINI_DIR, 'commands_backup');
 
@@ -163,7 +233,7 @@ const askQuestions = () => {
       name: 'MENU_CHOICE',
       type: 'list',
       message: 'What would you like to do?',
-      choices: ['Add new command', 'List all available commands', 'Delete command', 'Backup commands', 'Exit'],
+      choices: ['Add new command', 'List all available commands', 'Delete command', 'Backup commands', 'Restore commands', 'Exit'],
     },
   ];
   return inquirer.prompt(questions);
@@ -238,6 +308,9 @@ const run = async () => {
         break;
       case 'Backup commands':
         backupCommands();
+        break;
+      case 'Restore commands':
+        await restoreCommands();
         break;
       case 'Exit':
         running = false;
