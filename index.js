@@ -73,12 +73,17 @@ const run = async () => {
           message: 'What is the name of the command?',
         },
         {
-          name: 'COMMAND_VALUE',
+          name: 'COMMAND_DESCRIPTION',
           type: 'input',
-          message: 'What is the command to execute?',
+          message: 'Enter a brief description for the command:',
+        },
+        {
+          name: 'COMMAND_PROMPT',
+          type: 'input',
+          message: 'Enter the prompt content:',
         },
       ]);
-      const { COMMAND_NAME, COMMAND_VALUE } = addCommandAnswers;
+      const { COMMAND_NAME, COMMAND_DESCRIPTION, COMMAND_PROMPT } = addCommandAnswers;
 
       // Create .gemini directory if it doesn't exist
       if (!fs.existsSync(GEMINI_DIR)) {
@@ -90,8 +95,12 @@ const run = async () => {
         fs.mkdirSync(COMMANDS_FILE);
       }
 
-      // Write the command to a new file
-      fs.writeFileSync(path.join(COMMANDS_FILE, COMMAND_NAME), COMMAND_VALUE);
+      // Write the command to a new file with .toml extension
+      let tomlContent = `description = "${COMMAND_DESCRIPTION}"`;
+      if (COMMAND_PROMPT) {
+        tomlContent += `\nprompt = """\n${COMMAND_PROMPT}\n"""`;
+      }
+      fs.writeFileSync(path.join(COMMANDS_FILE, `${COMMAND_NAME}.toml`), tomlContent);
 
       console.log(
         chalk.green(
