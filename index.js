@@ -60,13 +60,89 @@ ${parsedCommand.prompt}`));
   }
 };
 
+const deleteCommand = async () => {
+  const allCommands = [];
+  const collectCommands = (dir, prefix = '') => {
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    entries.forEach(entry => {
+      const fullPath = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        collectCommands(fullPath, `${prefix}${entry.name}/`);
+      } else if (entry.name.endsWith('.toml')) {
+        const commandName = entry.name.replace('.toml', '');
+        allCommands.push(`${prefix}${commandName}`);
+      }
+    });
+  };
+
+  if (fs.existsSync(COMMANDS_FILE) && fs.lstatSync(COMMANDS_FILE).isDirectory()) {
+    collectCommands(COMMANDS_FILE);
+
+    if (allCommands.length === 0) {
+      console.log(chalk.yellow('No commands to delete.'));
+      return;
+    }
+
+    const answers = await inquirer.prompt([
+      {
+        name: 'COMMAND_TO_DELETE',
+        type: 'list',
+        message: 'Which command would you like to delete?',
+        choices: [...allCommands, new inquirer.Separator(), 'Go Back'],
+      },
+    ]);
+
+    if (answers.COMMAND_TO_DELETE === 'Go Back') {
+      console.log(chalk.yellow('Returning to main menu.'));
+      return;
+    }
+
+    const confirmAnswer = await inquirer.prompt([
+      {
+        name: 'CONFIRM_DELETE',
+        type: 'confirm',
+        message: `Are you sure you want to delete ${answers.COMMAND_TO_DELETE}?`,
+        default: false,
+      },
+    ]);
+
+    if (confirmAnswer.CONFIRM_DELETE) {
+      const commandToDelete = answers.COMMAND_TO_DELETE;
+      const commandPathParts = commandToDelete.split('/');
+      const commandFileName = `${commandPathParts.pop()}.toml`;
+      const commandDirectory = path.join(COMMANDS_FILE, commandPathParts.join('/'));
+      const fullFilePath = path.join(commandDirectory, commandFileName);
+
+      try {
+        fs.unlinkSync(fullFilePath);
+        console.log(chalk.green(`Successfully deleted command: ${commandToDelete}`));
+
+        // Clean up empty directories
+        let currentDir = commandDirectory;
+        while (currentDir !== COMMANDS_FILE && fs.readdirSync(currentDir).length === 0) {
+          fs.rmdirSync(currentDir);
+          currentDir = path.dirname(currentDir);
+        }
+
+      } catch (e) {
+        console.log(chalk.red(`Error deleting command ${commandToDelete}: ${e.message}`));
+      }
+    } else {
+      console.log(chalk.yellow('Deletion cancelled.'));
+    }
+
+  } else {
+    console.log(chalk.yellow('No commands directory found.'));
+  }
+};
+
 const askQuestions = () => {
   const questions = [
     {
       name: 'MENU_CHOICE',
       type: 'list',
       message: 'What would you like to do?',
-      choices: ['Add new command', 'List all available commands'],
+      choices: ['Add new command', 'List all available commands', 'Delete command', 'Exit'],
     },
   ];
   return inquirer.prompt(questions);
@@ -76,64 +152,74 @@ const run = async () => {
   // show script introduction
   init();
 
-  // ask questions
-  const answers = await askQuestions();
-  const { MENU_CHOICE } = answers;
+  let running = true;
+  while (running) {
+    // ask questions
+    const answers = await askQuestions();
+    const { MENU_CHOICE } = answers;
 
-  switch (MENU_CHOICE) {
-    case 'Add new command':
-      const addCommandAnswers = await inquirer.prompt([
-        {
-          name: 'COMMAND_PATH',
-          type: 'input',
-          message: 'Enter the command path (e.g., git/commit or mycommand):',
-        },
-        {
-          name: 'COMMAND_DESCRIPTION',
-          type: 'input',
-          message: 'Enter a brief description for the command:',
-        },
-        {
-          name: 'COMMAND_PROMPT',
-          type: 'input',
-          message: 'Enter the prompt content:',
-        },
-      ]);
-      const { COMMAND_PATH, COMMAND_DESCRIPTION, COMMAND_PROMPT } = addCommandAnswers;
+    switch (MENU_CHOICE) {
+      case 'Add new command':
+        const addCommandAnswers = await inquirer.prompt([
+          {
+            name: 'COMMAND_PATH',
+            type: 'input',
+            message: 'Enter the command path (e.g., git/commit or mycommand):',
+          },
+          {
+            name: 'COMMAND_DESCRIPTION',
+            type: 'input',
+            message: 'Enter a brief description for the command:',
+          },
+          {
+            name: 'COMMAND_PROMPT',
+            type: 'input',
+            message: 'Enter the prompt content (optional):',
+          },
+        ]);
+        const { COMMAND_PATH, COMMAND_DESCRIPTION, COMMAND_PROMPT } = addCommandAnswers;
 
-      // Parse COMMAND_PATH to get the command name and subdirectory
-      const pathParts = COMMAND_PATH.split('/');
-      const commandName = pathParts.pop();
-      const subDirectory = pathParts.join('/');
+        // Parse COMMAND_PATH to get the command name and subdirectory
+        const pathParts = COMMAND_PATH.split('/');
+        const commandName = pathParts.pop();
+        const subDirectory = pathParts.join('/');
 
-      const fullCommandsPath = path.join(COMMANDS_FILE, subDirectory);
+        const fullCommandsPath = path.join(COMMANDS_FILE, subDirectory);
 
-      // Create .gemini directory if it doesn't exist
-      if (!fs.existsSync(GEMINI_DIR)) {
-        fs.mkdirSync(GEMINI_DIR);
-      }
+        // Create .gemini directory if it doesn't exist
+        if (!fs.existsSync(GEMINI_DIR)) {
+          fs.mkdirSync(GEMINI_DIR);
+        }
 
-      // Create full command path (including subdirectories) if it doesn't exist
-      if (!fs.existsSync(fullCommandsPath)) {
-        fs.mkdirSync(fullCommandsPath, { recursive: true });
-      }
+        // Create full command path (including subdirectories) if it doesn't exist
+        if (!fs.existsSync(fullCommandsPath)) {
+          fs.mkdirSync(fullCommandsPath, { recursive: true });
+        }
 
-      // Write the command to a new file with .toml extension
-      let tomlContent = `description = "${COMMAND_DESCRIPTION}"`;
-      if (COMMAND_PROMPT) {
-        tomlContent += `\nprompt = """\n${COMMAND_PROMPT}\n"""`;
-      }
-      fs.writeFileSync(path.join(fullCommandsPath, `${commandName}.toml`), tomlContent);
+        // Write the command to a new file with .toml extension
+        let tomlContent = `description = "${COMMAND_DESCRIPTION}"`;
+        if (COMMAND_PROMPT) {
+          tomlContent += `\nprompt = """\n${COMMAND_PROMPT}\n"""`;
+        }
+        fs.writeFileSync(path.join(fullCommandsPath, `${commandName}.toml`), tomlContent);
 
-      console.log(
-        chalk.green(
-          `Successfully added the command: ${COMMAND_PATH}`
-        )
-      );
-      break;
-    case 'List all available commands':
-      listCommands();
-      break;
+        console.log(
+          chalk.green(
+            `Successfully added the command: ${COMMAND_PATH}`
+          )
+        );
+        break;
+      case 'List all available commands':
+        listCommands();
+        break;
+      case 'Delete command':
+        await deleteCommand();
+        break;
+      case 'Exit':
+        running = false;
+        console.log(chalk.green('Exiting Gemini Add Custom Commands CLI. Goodbye!'));
+        break;
+    }
   }
 };
 
