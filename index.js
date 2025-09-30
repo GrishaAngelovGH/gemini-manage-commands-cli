@@ -14,7 +14,7 @@ const COMMANDS_FILE = path.join(GEMINI_DIR, 'commands');
 const init = () => {
   console.log(
     chalk.green(
-      figlet.textSync('Gemini Add Custom Commands CLI', {
+      figlet.textSync('Gemini Manage Commands CLI', {
         font: 'Standard',
         horizontalLayout: 'default',
         verticalLayout: 'default',
@@ -35,14 +35,12 @@ const listCommands = () => {
         const commandContent = fs.readFileSync(fullPath, 'utf8');
         try {
           const parsedCommand = toml.parse(commandContent);
-          console.log(chalk.yellow(`
-Command: ${prefix}${commandName}`));
+          console.log(chalk.yellow(`Command: ${prefix}${commandName}`));
           if (parsedCommand.description) {
             console.log(chalk.cyan(`  Description: ${parsedCommand.description}`));
           }
           if (parsedCommand.prompt) {
-            console.log(chalk.magenta(`  Prompt:
-${parsedCommand.prompt}`));
+            console.log(chalk.magenta(`  Prompt:${parsedCommand.prompt}`));
           }
           console.log(chalk.gray('────────────────────────────────────────')); // Separator
         } catch (e) {
@@ -104,28 +102,24 @@ const processImport = async (importFilePath) => {
     }
 
     if (fs.existsSync(fullActiveFilePath)) {
-      const conflictAnswers = await inquirer.prompt([
-        {
-          name: 'CONFLICT_RESOLUTION',
-          type: 'list',
-          message: `Command '${cmd.name}' already exists. What would you like to do?`,
-          choices: ['Overwrite', 'Skip', 'Rename'],
-        },
-      ]);
+      const conflictAnswers = await inquirer.prompt([{
+        name: 'CONFLICT_RESOLUTION',
+        type: 'list',
+        message: `Command '${cmd.name}' already exists. What would you like to do?`,
+        choices: ['Overwrite', 'Skip', 'Rename'],
+      },]);
 
       if (conflictAnswers.CONFLICT_RESOLUTION === 'Overwrite') {
         fs.writeFileSync(fullActiveFilePath, tomlContent);
         console.log(chalk.green(`  Overwrote command: ${cmd.name}`));
         importedCount++;
       } else if (conflictAnswers.CONFLICT_RESOLUTION === 'Rename') {
-        const renameAnswers = await inquirer.prompt([
-          {
-            name: 'NEW_NAME',
-            type: 'input',
-            message: `Enter new name for '${cmd.name}':`,
-            default: `${cmd.name}_imported`,
-          },
-        ]);
+        const renameAnswers = await inquirer.prompt([{
+          name: 'NEW_NAME',
+          type: 'input',
+          message: `Enter new name for '${cmd.name}':`,
+          default: `${cmd.name}_imported`,
+        },]);
         const newCommandName = renameAnswers.NEW_NAME.split('/').pop();
         const newSubDirectory = renameAnswers.NEW_NAME.split('/').slice(0, -1).join('/');
         const newFullCommandsPath = path.join(COMMANDS_FILE, newSubDirectory);
@@ -144,19 +138,16 @@ const processImport = async (importFilePath) => {
       importedCount++;
     }
   }
-  console.log(chalk.green(`
-Successfully imported ${importedCount} commands.`));
+  console.log(chalk.green(`Successfully imported ${importedCount} commands.`));
 };
 
 const importCommandsFromJson = async () => {
-  const dirAnswers = await inquirer.prompt([
-    {
-      name: 'IMPORT_DIR',
-      type: 'input',
-      message: 'Enter the directory containing the JSON export file (default: current directory):',
-      default: '.',
-    },
-  ]);
+  const dirAnswers = await inquirer.prompt([{
+    name: 'IMPORT_DIR',
+    type: 'input',
+    message: 'Enter the directory containing the JSON export file (default: current directory):',
+    default: '.',
+  },]);
 
   const importDirectory = dirAnswers.IMPORT_DIR;
 
@@ -169,13 +160,11 @@ const importCommandsFromJson = async () => {
 
   if (jsonFiles.length === 0) {
     console.log(chalk.yellow(`No JSON files found in ${importDirectory}.`));
-    const manualPathAnswers = await inquirer.prompt([
-      {
-        name: 'MANUAL_PATH',
-        type: 'input',
-        message: 'Enter the full path to the JSON file manually (or leave blank to cancel):',
-      },
-    ]);
+    const manualPathAnswers = await inquirer.prompt([{
+      name: 'MANUAL_PATH',
+      type: 'input',
+      message: 'Enter the full path to the JSON file manually (or leave blank to cancel):',
+    },]);
     if (!manualPathAnswers.MANUAL_PATH) {
       console.log(chalk.yellow('Import cancelled.'));
       return;
@@ -184,26 +173,22 @@ const importCommandsFromJson = async () => {
     return;
   }
 
-  const fileAnswers = await inquirer.prompt([
-    {
-      name: 'SELECTED_FILE',
-      type: 'list',
-      message: 'Select the JSON file to import:',
-      choices: [...jsonFiles, new inquirer.Separator(), 'Enter path manually', 'Go Back'],
-    },
-  ]);
+  const fileAnswers = await inquirer.prompt([{
+    name: 'SELECTED_FILE',
+    type: 'list',
+    message: 'Select the JSON file to import:',
+    choices: [...jsonFiles, new inquirer.Separator(), 'Enter path manually', 'Go Back'],
+  },]);
 
   if (fileAnswers.SELECTED_FILE === 'Go Back') {
     console.log(chalk.yellow('Import cancelled.'));
     return;
   } else if (fileAnswers.SELECTED_FILE === 'Enter path manually') {
-    const manualPathAnswers = await inquirer.prompt([
-      {
-        name: 'MANUAL_PATH',
-        type: 'input',
-        message: 'Enter the full path to the JSON file manually (or leave blank to cancel):',
-      },
-    ]);
+    const manualPathAnswers = await inquirer.prompt([{
+      name: 'MANUAL_PATH',
+      type: 'input',
+      message: 'Enter the full path to the JSON file manually (or leave blank to cancel):',
+    },]);
     if (!manualPathAnswers.MANUAL_PATH) {
       console.log(chalk.yellow('Import cancelled.'));
       return;
@@ -252,22 +237,26 @@ const exportCommandsToJson = async () => {
     return;
   }
 
-  const answers = await inquirer.prompt([
-    {
-      name: 'FILENAME',
-      type: 'input',
-      message: 'Enter the filename for the JSON export (e.g., my_commands.json):',
-      default: 'commands_export.json',
-    },
-    {
-      name: 'LOCATION',
-      type: 'input',
-      message: 'Enter the directory to save the JSON file (default: current directory):',
-      default: '.',
-    },
+  const answers = await inquirer.prompt([{
+    name: 'FILENAME',
+    type: 'input',
+    message: 'Enter the filename for the JSON export (e.g., my_commands.json):',
+    default: 'commands_export.json',
+  },
+  {
+    name: 'LOCATION',
+    type: 'input',
+    message: 'Enter the directory to save the JSON file (default: current directory):',
+    default: '.',
+  },
   ]);
 
-  const exportFilePath = path.join(answers.LOCATION, answers.FILENAME);
+  let exportFileName = answers.FILENAME;
+  if (!exportFileName.endsWith('.json')) {
+    exportFileName += '.json';
+  }
+
+  const exportFilePath = path.join(answers.LOCATION, exportFileName);
 
   try {
     fs.writeFileSync(exportFilePath, JSON.stringify(allCommands, null, 2));
@@ -285,14 +274,12 @@ const restoreCommands = async () => {
     return;
   }
 
-  const scopeAnswers = await inquirer.prompt([
-    {
-      name: 'RESTORE_SCOPE',
-      type: 'list',
-      message: 'What would you like to restore?',
-      choices: ['All commands (merge with existing)', 'A single command (merge)', 'Go Back'],
-    },
-  ]);
+  const scopeAnswers = await inquirer.prompt([{
+    name: 'RESTORE_SCOPE',
+    type: 'list',
+    message: 'What would you like to restore?',
+    choices: ['All commands (merge with existing)', 'A single command (merge)', 'Go Back'],
+  },]);
 
   if (scopeAnswers.RESTORE_SCOPE === 'Go Back') {
     console.log(chalk.yellow('Restore cancelled.'));
@@ -300,14 +287,12 @@ const restoreCommands = async () => {
   }
 
   if (scopeAnswers.RESTORE_SCOPE === 'All commands (merge with existing)') {
-    const confirmAnswers = await inquirer.prompt([
-      {
-        name: 'CONFIRM_RESTORE',
-        type: 'confirm',
-        message: 'Are you sure you want to merge ALL commands from backup? This will add new commands and overwrite existing ones.',
-        default: false,
-      },
-    ]);
+    const confirmAnswers = await inquirer.prompt([{
+      name: 'CONFIRM_RESTORE',
+      type: 'confirm',
+      message: 'Are you sure you want to merge ALL commands from backup? This will add new commands and overwrite existing ones.',
+      default: false,
+    },]);
 
     if (confirmAnswers.CONFIRM_RESTORE) {
       try {
@@ -364,14 +349,12 @@ const restoreCommands = async () => {
       return;
     }
 
-    const selectCommandAnswers = await inquirer.prompt([
-      {
-        name: 'COMMAND_TO_RESTORE',
-        type: 'list',
-        message: 'Which command would you like to restore from backup?',
-        choices: [...allBackupCommands, new inquirer.Separator(), 'Go Back'],
-      },
-    ]);
+    const selectCommandAnswers = await inquirer.prompt([{
+      name: 'COMMAND_TO_RESTORE',
+      type: 'list',
+      message: 'Which command would you like to restore from backup?',
+      choices: [...allBackupCommands, new inquirer.Separator(), 'Go Back'],
+    },]);
 
     if (selectCommandAnswers.COMMAND_TO_RESTORE === 'Go Back') {
       console.log(chalk.yellow('Restore cancelled.'));
@@ -393,14 +376,12 @@ const restoreCommands = async () => {
     }
 
     if (fs.existsSync(fullActiveFilePath)) {
-      const conflictAnswers = await inquirer.prompt([
-        {
-          name: 'CONFLICT_RESOLUTION',
-          type: 'list',
-          message: `Command '${commandToRestore}' already exists. What would you like to do?`,
-          choices: ['Overwrite', 'Skip', 'Go Back'],
-        },
-      ]);
+      const conflictAnswers = await inquirer.prompt([{
+        name: 'CONFLICT_RESOLUTION',
+        type: 'list',
+        message: `Command '${commandToRestore}' already exists. What would you like to do?`,
+        choices: ['Overwrite', 'Skip', 'Go Back'],
+      },]);
 
       if (conflictAnswers.CONFLICT_RESOLUTION === 'Overwrite') {
         fs.copyFileSync(fullBackupFilePath, fullActiveFilePath);
@@ -462,28 +443,24 @@ const deleteCommand = async () => {
       return;
     }
 
-    const answers = await inquirer.prompt([
-      {
-        name: 'COMMAND_TO_DELETE',
-        type: 'list',
-        message: 'Which command would you like to delete?',
-        choices: [...allCommands, new inquirer.Separator(), 'Go Back'],
-      },
-    ]);
+    const answers = await inquirer.prompt([{
+      name: 'COMMAND_TO_DELETE',
+      type: 'list',
+      message: 'Which command would you like to delete?',
+      choices: [...allCommands, new inquirer.Separator(), 'Go Back'],
+    },]);
 
     if (answers.COMMAND_TO_DELETE === 'Go Back') {
       console.log(chalk.yellow('Returning to main menu.'));
       return;
     }
 
-    const confirmAnswer = await inquirer.prompt([
-      {
-        name: 'CONFIRM_DELETE',
-        type: 'confirm',
-        message: `Are you sure you want to delete ${answers.COMMAND_TO_DELETE}?`,
-        default: false,
-      },
-    ]);
+    const confirmAnswer = await inquirer.prompt([{
+      name: 'CONFIRM_DELETE',
+      type: 'confirm',
+      message: `Are you sure you want to delete ${answers.COMMAND_TO_DELETE}?`,
+      default: false,
+    },]);
 
     if (confirmAnswer.CONFIRM_DELETE) {
       const commandToDelete = answers.COMMAND_TO_DELETE;
@@ -516,14 +493,12 @@ const deleteCommand = async () => {
 };
 
 const askQuestions = () => {
-  const questions = [
-    {
-      name: 'MENU_CHOICE',
-      type: 'list',
-      message: 'What would you like to do?',
-      choices: ['Add new command', 'List all available commands', 'Delete command', 'Backup commands', 'Restore commands', 'Export commands to JSON', 'Import commands from JSON', 'Exit'],
-    },
-  ];
+  const questions = [{
+    name: 'MENU_CHOICE',
+    type: 'list',
+    message: 'What would you like to do?',
+    choices: ['Add new command', 'List all available commands', 'Delete command', 'Backup commands', 'Restore commands', 'Export commands to JSON', 'Import commands from JSON', 'Exit'],
+  },];
   return inquirer.prompt(questions);
 };
 
@@ -539,22 +514,21 @@ const run = async () => {
 
     switch (MENU_CHOICE) {
       case 'Add new command':
-        const addCommandAnswers = await inquirer.prompt([
-          {
-            name: 'COMMAND_PATH',
-            type: 'input',
-            message: 'Enter the command path (e.g., git/commit or mycommand):',
-          },
-          {
-            name: 'COMMAND_DESCRIPTION',
-            type: 'input',
-            message: 'Enter a brief description for the command:',
-          },
-          {
-            name: 'COMMAND_PROMPT',
-            type: 'input',
-            message: 'Enter the prompt content (optional):',
-          },
+        const addCommandAnswers = await inquirer.prompt([{
+          name: 'COMMAND_PATH',
+          type: 'input',
+          message: 'Enter the command path (e.g., git/commit or mycommand):',
+        },
+        {
+          name: 'COMMAND_DESCRIPTION',
+          type: 'input',
+          message: 'Enter a brief description for the command:',
+        },
+        {
+          name: 'COMMAND_PROMPT',
+          type: 'input',
+          message: 'Enter the prompt content:',
+        },
         ]);
         const { COMMAND_PATH, COMMAND_DESCRIPTION, COMMAND_PROMPT } = addCommandAnswers;
 

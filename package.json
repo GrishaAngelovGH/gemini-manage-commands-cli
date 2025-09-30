@@ -1,26 +1,26 @@
 {
-  "name": "gemini-add-commands-cli",
+  "name": "gemini-manage-commands-cli",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "type": "commonjs",
   "bin": {
-    "gemini-add-command": "./index.js"
+    "gemini-manage-commands": "./index.js"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/GrishaAngelovGH/gemini-add-commands-cli.git"
+    "url": "git+https://github.com/GrishaAngelovGH/gemini-manage-commands-cli.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/GrishaAngelovGH/gemini-add-commands-cli/issues"
+    "url": "https://github.com/GrishaAngelovGH/gemini-manage-commands-cli/issues"
   },
-  "homepage": "https://github.com/GrishaAngelovGH/gemini-add-commands-cli#readme",
+  "homepage": "https://github.com/GrishaAngelovGH/gemini-manage-commands-cli#readme",
   "dependencies": {
     "@iarna/toml": "^2.2.5",
     "chalk": "^4.1.2",
