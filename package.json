@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "type": "commonjs",
   "bin": {
     "gemini-add-command": "./index.js"
   },
@@ -16,14 +17,13 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
   "bugs": {
     "url": "https://github.com/GrishaAngelovGH/gemini-add-commands-cli/issues"
   },
   "homepage": "https://github.com/GrishaAngelovGH/gemini-add-commands-cli#readme",
   "dependencies": {
-    "chalk": "^5.6.2",
+    "chalk": "^4.1.2",
     "figlet": "^1.9.3",
-    "inquirer": "^12.9.6"
+    "inquirer": "^8.2.7"
   }
 }

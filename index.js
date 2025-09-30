@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
-import chalk from 'chalk';
-import figlet from 'figlet';
-import inquirer from 'inquirer';
-import fs from 'fs';
-import path from 'path';
-import { homedir } from 'os';
+const chalk = require('chalk');
+const figlet = require('figlet');
+const inquirer = require('inquirer');
+const fs = require('fs');
+const path = require('path');
+const { homedir } = require('os');
 
 const GEMINI_DIR = path.join(homedir(), '.gemini');
 const COMMANDS_FILE = path.join(GEMINI_DIR, 'commands');
