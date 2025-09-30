@@ -68,9 +68,9 @@ const run = async () => {
     case 'Add new command':
       const addCommandAnswers = await inquirer.prompt([
         {
-          name: 'COMMAND_NAME',
+          name: 'COMMAND_PATH',
           type: 'input',
-          message: 'What is the name of the command?',
+          message: 'Enter the command path (e.g., git/commit or mycommand):',
         },
         {
           name: 'COMMAND_DESCRIPTION',
@@ -83,16 +83,23 @@ const run = async () => {
           message: 'Enter the prompt content:',
         },
       ]);
-      const { COMMAND_NAME, COMMAND_DESCRIPTION, COMMAND_PROMPT } = addCommandAnswers;
+      const { COMMAND_PATH, COMMAND_DESCRIPTION, COMMAND_PROMPT } = addCommandAnswers;
+
+      // Parse COMMAND_PATH to get the command name and subdirectory
+      const pathParts = COMMAND_PATH.split('/');
+      const commandName = pathParts.pop();
+      const subDirectory = pathParts.join('/');
+
+      const fullCommandsPath = path.join(COMMANDS_FILE, subDirectory);
 
       // Create .gemini directory if it doesn't exist
       if (!fs.existsSync(GEMINI_DIR)) {
         fs.mkdirSync(GEMINI_DIR);
       }
 
-      // Create commands directory if it doesn't exist
-      if (!fs.existsSync(COMMANDS_FILE)) {
-        fs.mkdirSync(COMMANDS_FILE);
+      // Create full command path (including subdirectories) if it doesn't exist
+      if (!fs.existsSync(fullCommandsPath)) {
+        fs.mkdirSync(fullCommandsPath, { recursive: true });
       }
 
       // Write the command to a new file with .toml extension
@@ -100,11 +107,11 @@ const run = async () => {
       if (COMMAND_PROMPT) {
         tomlContent += `\nprompt = """\n${COMMAND_PROMPT}\n"""`;
       }
-      fs.writeFileSync(path.join(COMMANDS_FILE, `${COMMAND_NAME}.toml`), tomlContent);
+      fs.writeFileSync(path.join(fullCommandsPath, `${commandName}.toml`), tomlContent);
 
       console.log(
         chalk.green(
-          `Successfully added the command: ${COMMAND_NAME}`
+          `Successfully added the command: ${COMMAND_PATH}`
         )
       );
       break;
