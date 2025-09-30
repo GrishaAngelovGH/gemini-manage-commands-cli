@@ -60,6 +60,27 @@ ${parsedCommand.prompt}`));
   }
 };
 
+const backupCommands = () => {
+  const backupDir = path.join(GEMINI_DIR, 'commands_backup');
+
+  if (!fs.existsSync(COMMANDS_FILE)) {
+    console.log(chalk.yellow('No commands directory to backup.'));
+    return;
+  }
+
+  if (fs.existsSync(backupDir)) {
+    console.log(chalk.yellow('Existing backup found. Deleting old backup...'));
+    fs.rmSync(backupDir, { recursive: true, force: true });
+  }
+
+  try {
+    fs.cpSync(COMMANDS_FILE, backupDir, { recursive: true });
+    console.log(chalk.green(`Successfully created backup at: ${backupDir}`));
+  } catch (e) {
+    console.log(chalk.red(`Error creating backup: ${e.message}`));
+  }
+};
+
 const deleteCommand = async () => {
   const allCommands = [];
   const collectCommands = (dir, prefix = '') => {
@@ -142,7 +163,7 @@ const askQuestions = () => {
       name: 'MENU_CHOICE',
       type: 'list',
       message: 'What would you like to do?',
-      choices: ['Add new command', 'List all available commands', 'Delete command', 'Exit'],
+      choices: ['Add new command', 'List all available commands', 'Delete command', 'Backup commands', 'Exit'],
     },
   ];
   return inquirer.prompt(questions);
@@ -214,6 +235,9 @@ const run = async () => {
         break;
       case 'Delete command':
         await deleteCommand();
+        break;
+      case 'Backup commands':
+        backupCommands();
         break;
       case 'Exit':
         running = false;
