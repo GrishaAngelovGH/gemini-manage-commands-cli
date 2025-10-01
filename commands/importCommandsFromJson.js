@@ -40,6 +40,15 @@ const processImport = async (importFilePath) => {
     const fullCommandsPath = path.join(COMMANDS_FILE, subDirectory);
     const fullActiveFilePath = path.join(fullCommandsPath, `${commandName}.toml`);
 
+    // Security: Prevent path traversal from malicious JSON files.
+    const resolvedCommandsDir = path.resolve(COMMANDS_FILE);
+    const resolvedFilePath = path.resolve(fullActiveFilePath);
+
+    if (!resolvedFilePath.startsWith(resolvedCommandsDir)) {
+      console.log(chalk.red(`  Error: Command '${cmd.name}' has a malicious path and will be skipped.`));
+      continue;
+    }
+
     // Ensure commands directory exists
     if (!fs.existsSync(fullCommandsPath)) {
       fs.mkdirSync(fullCommandsPath, { recursive: true });
@@ -91,34 +100,13 @@ const processImport = async (importFilePath) => {
 };
 
 const importCommandsFromJson = async () => {
-  const dirAnswers = await inquirer.prompt([{
-    name: 'IMPORT_DIR',
-    type: 'input',
-    message: 'Enter the directory containing the JSON export file (default: current directory):',
-    default: '.',
-  },]);
-
-  const importDirectory = dirAnswers.IMPORT_DIR;
-
-  if (!fs.existsSync(importDirectory) || !fs.lstatSync(importDirectory).isDirectory()) {
-    console.log(chalk.red(`Error: Directory not found at ${importDirectory}`));
-    return;
-  }
+  const importDirectory = '.'; // Always use the current directory
 
   const jsonFiles = fs.readdirSync(importDirectory).filter(file => file.endsWith('.json') && file !== 'package.json' && file !== 'package-lock.json');
 
   if (jsonFiles.length === 0) {
     console.log(chalk.yellow('No JSON files found.'));
-    const manualPathAnswers = await inquirer.prompt([{
-      name: 'MANUAL_PATH',
-      type: 'input',
-      message: 'Enter the full path to the JSON file manually (or leave blank to cancel):',
-    },]);
-    if (!manualPathAnswers.MANUAL_PATH) {
-      console.log(chalk.yellow('Import cancelled.'));
-      return;
-    }
-    await processImport(manualPathAnswers.MANUAL_PATH);
+    console.log(chalk.yellow('Import cancelled. No JSON files found in the current directory.'));
     return;
   }
 
@@ -126,26 +114,14 @@ const importCommandsFromJson = async () => {
     name: 'SELECTED_FILE',
     type: 'list',
     message: 'Select the JSON file to import:',
-    choices: [...jsonFiles, new inquirer.Separator(), 'Enter path manually', 'Go Back'],
+    choices: [...jsonFiles, new inquirer.Separator(), 'Go Back'],
   },]);
 
   if (fileAnswers.SELECTED_FILE === 'Go Back') {
     console.log(chalk.yellow('Import cancelled.'));
     return;
-  } else if (fileAnswers.SELECTED_FILE === 'Enter path manually') {
-    const manualPathAnswers = await inquirer.prompt([{
-      name: 'MANUAL_PATH',
-      type: 'input',
-      message: 'Enter the full path to the JSON file manually (or leave blank to cancel):',
-    },]);
-    if (!manualPathAnswers.MANUAL_PATH) {
-      console.log(chalk.yellow('Import cancelled.'));
-      return;
-    }
-    await processImport(manualPathAnswers.MANUAL_PATH);
-  } else {
-    await processImport(path.join(importDirectory, fileAnswers.SELECTED_FILE));
   }
+  await processImport(path.join(importDirectory, fileAnswers.SELECTED_FILE));
 };
 
 module.exports = importCommandsFromJson

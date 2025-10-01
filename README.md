@@ -64,11 +64,11 @@ Use this to restore commands from a backup. The user will have options to:
 
 ### Export Commands to JSON
 
-This allows the user to export all custom commands into a single JSON file. The user will be asked for a filename and a directory to save the export. This is useful for sharing commands or for version control.
+This allows the user to export all custom commands into a single JSON file. The user will be asked for a filename, and the file will be saved in the current directory. This is useful for sharing commands or for version control.
 
 ### Import Commands from JSON
 
-This option facilitates importing commands from a JSON file. The user is first asked to specify a directory. The CLI then intelligently scans this directory for any `.json` files (ignoring common config files like `package.json`) and presents them in a list to choose from. It also provides an option to enter a full path to a file manually. Once a file is selected, the CLI guides the user through handling any potential conflicts with existing commands (overwrite, skip, or rename).
+This option facilitates importing commands from a JSON file. The CLI intelligently scans the current directory for any `.json` files (ignoring common config files like `package.json`) and presents them in a list to choose from. Once a file is selected, the CLI guides the user through handling any potential conflicts with existing commands (overwrite, skip, or rename).
 
 ### Exit
 

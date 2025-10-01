@@ -51,12 +51,6 @@ const exportCommandsToJson = async () => {
     message: 'Enter the filename for the JSON export (e.g., my_commands.json):',
     default: 'commands_export.json',
   },
-  {
-    name: 'LOCATION',
-    type: 'input',
-    message: 'Enter the directory to save the JSON file (default: current directory):',
-    default: '.',
-  },
   ]);
 
   let exportFileName = answers.FILENAME;
@@ -64,7 +58,7 @@ const exportCommandsToJson = async () => {
     exportFileName += '.json';
   }
 
-  const exportFilePath = path.join(answers.LOCATION, exportFileName);
+  const exportFilePath = path.join('.', exportFileName);
 
   try {
     fs.writeFileSync(exportFilePath, JSON.stringify(allCommands, null, 2));
