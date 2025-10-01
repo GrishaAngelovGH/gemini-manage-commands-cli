@@ -34,8 +34,8 @@ const askQuestions = () => {
     name: 'MENU_CHOICE',
     type: 'list',
     message: 'What would you like to do?',
-    pageSize: 8,
-    choices: ['Add new command', 'List all available commands', 'Delete command', 'Backup commands', 'Restore commands', 'Export commands to JSON', 'Import commands from JSON', 'Exit'],
+    pageSize: 9,
+    choices: ['Add New Command', 'List All Available Commands', 'Delete Command', 'Backup Commands', 'Restore Commands', 'Export Commands to JSON', 'Import Commands from JSON', 'Clear Screen', 'Exit'],
   },];
   return inquirer.prompt(questions);
 };
@@ -51,7 +51,7 @@ const run = async () => {
     const { MENU_CHOICE } = answers;
 
     switch (MENU_CHOICE) {
-      case 'Add new command':
+      case 'Add New Command':
         const addCommandAnswers = await inquirer.prompt([
           {
             name: 'COMMAND_PATH',
@@ -143,23 +143,26 @@ const run = async () => {
           )
         );
         break;
-      case 'List all available commands':
+      case 'List All Available Commands':
         listCommands();
         break;
-      case 'Delete command':
+      case 'Delete Command':
         await deleteCommand();
         break;
-      case 'Backup commands':
+      case 'Backup Commands':
         backupCommands();
         break;
-      case 'Restore commands':
+      case 'Restore Commands':
         await restoreCommands();
         break;
-      case 'Export commands to JSON':
+      case 'Export Commands to JSON':
         await exportCommandsToJson();
         break;
-      case 'Import commands from JSON':
+      case 'Import Commands from JSON':
         await importCommandsFromJson();
+        break;
+      case 'Clear Screen':
+        console.clear();
         break;
       case 'Exit':
         running = false;
