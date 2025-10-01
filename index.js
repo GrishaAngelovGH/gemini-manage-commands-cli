@@ -1,18 +1,18 @@
 #!/usr/bin/env node
 
-const chalk = require('chalk');
-const figlet = require('figlet');
-const inquirer = require('inquirer');
-const fs = require('fs');
-const path = require('path');
-const { homedir } = require('os');
+import chalk from 'chalk';
+import figlet from 'figlet';
+import inquirer from 'inquirer';
+import fs from 'node:fs';
+import path from 'node:path';
+import { homedir } from 'node:os';
 
-const listCommands = require('./commands/listCommands')
-const deleteCommand = require('./commands/deleteCommand')
-const backupCommands = require('./commands/backupCommands')
-const restoreCommands = require('./commands/restoreCommands')
-const exportCommandsToJson = require('./commands/exportCommandsToJson')
-const importCommandsFromJson = require('./commands/importCommandsFromJson')
+import listCommands from './commands/listCommands.js';
+import deleteCommand from './commands/deleteCommand.js';
+import backupCommands from './commands/backupCommands.js';
+import restoreCommands from './commands/restoreCommands.js';
+import exportCommandsToJson from './commands/exportCommandsToJson.js';
+import importCommandsFromJson from './commands/importCommandsFromJson.js';
 
 const GEMINI_DIR = path.join(homedir(), '.gemini');
 const COMMANDS_FILE = path.join(GEMINI_DIR, 'commands');

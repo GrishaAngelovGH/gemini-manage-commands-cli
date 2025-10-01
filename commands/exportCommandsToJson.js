@@ -1,9 +1,9 @@
-const chalk = require('chalk');
-const inquirer = require('inquirer');
-const fs = require('fs');
-const path = require('path');
-const { homedir } = require('os');
-const { getParsedCommands } = require('./commandFinder');
+import chalk from 'chalk';
+import inquirer from 'inquirer';
+import fs from 'node:fs';
+import path from 'node:path';
+import { homedir } from 'node:os';
+import { getParsedCommands } from './commandFinder.js';
 
 const GEMINI_DIR = path.join(homedir(), '.gemini');
 const COMMANDS_FILE = path.join(GEMINI_DIR, 'commands');
@@ -44,6 +44,15 @@ const exportCommandsToJson = async () => {
 
   const exportFilePath = path.join('.', exportFileName);
 
+  // Security: Prevent path traversal
+  const resolvedExportPath = path.resolve(exportFilePath);
+  const resolvedCurrentDir = path.resolve('.');
+
+  if (!resolvedExportPath.startsWith(resolvedCurrentDir)) {
+    console.log(chalk.red('Error: Export path is outside the current directory. Aborting.'));
+    return;
+  }
+
   try {
     fs.writeFileSync(exportFilePath, JSON.stringify(allCommands, null, 2));
     console.log(chalk.green(`Successfully exported ${allCommands.length} commands to ${exportFilePath}`));
@@ -52,4 +61,4 @@ const exportCommandsToJson = async () => {
   }
 };
 
-module.exports = exportCommandsToJson
+export default exportCommandsToJson;

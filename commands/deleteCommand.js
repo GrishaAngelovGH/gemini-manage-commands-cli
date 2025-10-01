@@ -1,9 +1,9 @@
-const chalk = require('chalk');
-const inquirer = require('inquirer');
-const fs = require('fs');
-const path = require('path');
-const { homedir } = require('os');
-const { getCommandNames } = require('./commandFinder');
+import chalk from 'chalk';
+import inquirer from 'inquirer';
+import fs from 'node:fs';
+import path from 'node:path';
+import { homedir } from 'node:os';
+import { getCommandNames } from './commandFinder.js';
 
 const GEMINI_DIR = path.join(homedir(), '.gemini');
 const COMMANDS_FILE = path.join(GEMINI_DIR, 'commands');
@@ -57,6 +57,15 @@ const deleteCommand = async () => {
       const commandDirectory = path.join(COMMANDS_FILE, commandPathParts.join('/'));
       const fullFilePath = path.join(commandDirectory, commandFileName);
 
+      // Security: Prevent path traversal.
+      const resolvedCommandsDir = path.resolve(COMMANDS_FILE);
+      const resolvedFilePath = path.resolve(fullFilePath);
+
+      if (!resolvedFilePath.startsWith(resolvedCommandsDir)) {
+        console.log(chalk.red(`Error: Command '${commandToDelete}' has a malicious path. Deletion aborted.`));
+        return;
+      }
+
       try {
         fs.unlinkSync(fullFilePath);
         console.log(chalk.green(`Successfully deleted command: ${commandToDelete}`));
@@ -80,4 +89,4 @@ const deleteCommand = async () => {
   }
 };
 
-module.exports = deleteCommand
+export default deleteCommand;

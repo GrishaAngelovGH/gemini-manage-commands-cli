@@ -1,9 +1,9 @@
-const chalk = require('chalk');
-const inquirer = require('inquirer');
-const fs = require('fs');
-const path = require('path');
-const { homedir } = require('os');
-const { getCommandNames } = require('./commandFinder');
+import chalk from 'chalk';
+import inquirer from 'inquirer';
+import fs from 'node:fs';
+import path from 'node:path';
+import { homedir } from 'node:os';
+import { getCommandNames } from './commandFinder.js';
 
 const GEMINI_DIR = path.join(homedir(), '.gemini');
 const COMMANDS_FILE = path.join(GEMINI_DIR, 'commands');
@@ -80,6 +80,15 @@ const restoreCommands = async () => {
               }
               mergeDirectories(sourcePath, destinationPath);
             } else {
+              // Security: Prevent path traversal.
+              const resolvedDestinationDir = path.resolve(COMMANDS_FILE);
+              const resolvedDestinationPath = path.resolve(destinationPath);
+
+              if (!resolvedDestinationPath.startsWith(resolvedDestinationDir)) {
+                console.error(chalk.red(`Error: Malicious path detected in backup. Cannot restore ${sourcePath}.`));
+                return; // Stop processing this malicious entry
+              }
+
               try {
                 fs.copyFileSync(sourcePath, destinationPath); // Overwrites if exists, copies if new
               } catch (e) {
@@ -134,6 +143,15 @@ const restoreCommands = async () => {
     const commandActiveDirectory = path.join(COMMANDS_FILE, commandPathParts.join('/'));
     const fullActiveFilePath = path.join(commandActiveDirectory, commandFileName);
 
+    // Security: Prevent path traversal.
+    const resolvedCommandsDir = path.resolve(COMMANDS_FILE);
+    const resolvedFilePath = path.resolve(fullActiveFilePath);
+
+    if (!resolvedFilePath.startsWith(resolvedCommandsDir)) {
+      console.log(chalk.red(`Error: Command '${commandToRestore}' has a malicious path. Restore aborted.`));
+      return;
+    }
+
     // Ensure active directory exists
     try {
       if (!fs.existsSync(commandActiveDirectory)) {
@@ -182,4 +200,4 @@ const restoreCommands = async () => {
   }
 };
 
-module.exports = restoreCommands
+export default restoreCommands;

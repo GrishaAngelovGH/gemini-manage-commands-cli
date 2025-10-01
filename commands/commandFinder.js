@@ -1,6 +1,6 @@
-const fs = require('fs');
-const path = require('path');
-const toml = require('@iarna/toml');
+import fs from 'node:fs';
+import path from 'node:path';
+import toml from '@iarna/toml';
 
 const getCommandNames = (baseDir, currentPath = '', allNames = []) => {
   if (!fs.existsSync(baseDir) || !fs.lstatSync(baseDir).isDirectory()) {
@@ -68,7 +68,4 @@ const getParsedCommands = (baseDir, currentPath = '', allCommands = []) => {
   return allCommands;
 };
 
-module.exports = {
-  getCommandNames,
-  getParsedCommands,
-};
+export { getCommandNames, getParsedCommands };

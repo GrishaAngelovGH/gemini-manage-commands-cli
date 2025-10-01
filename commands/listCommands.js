@@ -1,8 +1,8 @@
-const chalk = require('chalk');
-const fs = require('fs');
-const path = require('path');
-const { homedir } = require('os');
-const { getParsedCommands } = require('./commandFinder');
+import chalk from 'chalk';
+import fs from 'node:fs';
+import path from 'node:path';
+import { homedir } from 'node:os';
+import { getParsedCommands } from './commandFinder.js';
 
 const GEMINI_DIR = path.join(homedir(), '.gemini');
 const COMMANDS_FILE = path.join(GEMINI_DIR, 'commands');
@@ -32,4 +32,4 @@ const listCommands = () => {
   }
 };
 
-module.exports = listCommands
+export default listCommands;

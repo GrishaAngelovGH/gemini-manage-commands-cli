@@ -1,7 +1,7 @@
-const chalk = require('chalk');
-const fs = require('fs');
-const path = require('path');
-const { homedir } = require('os');
+import chalk from 'chalk';
+import fs from 'node:fs';
+import path from 'node:path';
+import { homedir } from 'node:os';
 
 const GEMINI_DIR = path.join(homedir(), '.gemini');
 const COMMANDS_FILE = path.join(GEMINI_DIR, 'commands');
@@ -38,4 +38,4 @@ const backupCommands = () => {
   }
 };
 
-module.exports = backupCommands
+export default backupCommands;

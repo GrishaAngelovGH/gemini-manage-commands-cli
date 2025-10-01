@@ -1,8 +1,8 @@
-const chalk = require('chalk');
-const inquirer = require('inquirer');
-const fs = require('fs');
-const path = require('path');
-const { homedir } = require('os');
+import chalk from 'chalk';
+import inquirer from 'inquirer';
+import fs from 'node:fs';
+import path from 'node:path';
+import { homedir } from 'node:os';
 
 const GEMINI_DIR = path.join(homedir(), '.gemini');
 const COMMANDS_FILE = path.join(GEMINI_DIR, 'commands');
@@ -138,15 +138,27 @@ const processImport = async (importFilePath) => {
           console.log(chalk.red(`  Error during rename prompt for '${cmd.name}': ${e.message}`));
           continue; // Skip this command and proceed to the next
         }
-        const newCommandName = renameAnswers.NEW_NAME.split('/').pop();
-        const newSubDirectory = renameAnswers.NEW_NAME.split('/').slice(0, -1).join('/');
+        const newName = renameAnswers.NEW_NAME;
+        const newCommandName = newName.split('/').pop();
+        const newSubDirectory = newName.split('/').slice(0, -1).join('/');
         const newFullCommandsPath = path.join(COMMANDS_FILE, newSubDirectory);
+        const newFullFilePath = path.join(newFullCommandsPath, `${newCommandName}.toml`);
+
+        // Security: Prevent path traversal.
+        const resolvedCommandsDir = path.resolve(COMMANDS_FILE);
+        const resolvedFilePath = path.resolve(newFullFilePath);
+
+        if (!resolvedFilePath.startsWith(resolvedCommandsDir)) {
+          console.log(chalk.red(`  Error: New command name '${newName}' has a malicious path. Aborting.`));
+          continue;
+        }
+
         try {
           if (!fs.existsSync(newFullCommandsPath)) {
             fs.mkdirSync(newFullCommandsPath, { recursive: true });
           }
-          fs.writeFileSync(path.join(newFullCommandsPath, `${newCommandName}.toml`), tomlContent);
-          console.log(chalk.green(`  Imported command as: ${renameAnswers.NEW_NAME}`));
+          fs.writeFileSync(newFullFilePath, tomlContent);
+          console.log(chalk.green(`  Imported command as: ${newName}`));
           importedCount++;
         } catch (e) {
           console.log(chalk.red(`  Error renaming and importing command '${cmd.name}': ${e.message}`));
@@ -167,4 +179,4 @@ const processImport = async (importFilePath) => {
   console.log(chalk.green(`Successfully imported ${importedCount} commands.`));
 };
 
-module.exports = importCommandsFromJson
+export default importCommandsFromJson;
