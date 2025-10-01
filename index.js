@@ -121,27 +121,41 @@ const run = async () => {
         }
 
         // Create .gemini directory if it doesn't exist
-        if (!fs.existsSync(GEMINI_DIR)) {
-          fs.mkdirSync(GEMINI_DIR);
+        try {
+          if (!fs.existsSync(GEMINI_DIR)) {
+            fs.mkdirSync(GEMINI_DIR);
+          }
+        } catch (e) {
+          console.log(chalk.red(`Error creating Gemini directory: ${e.message}`));
+          break;
         }
 
         // Create full command path (including subdirectories) if it doesn't exist
-        if (!fs.existsSync(fullCommandsPath)) {
-          fs.mkdirSync(fullCommandsPath, { recursive: true });
+        try {
+          if (!fs.existsSync(fullCommandsPath)) {
+            fs.mkdirSync(fullCommandsPath, { recursive: true });
+          }
+        } catch (e) {
+          console.log(chalk.red(`Error creating command directory: ${e.message}`));
+          break;
         }
 
         // Write the command to a new file with .toml extension
-        let tomlContent = `description = "${COMMAND_DESCRIPTION}"`;
-        if (COMMAND_PROMPT) {
-          tomlContent += `\nprompt = """\n${COMMAND_PROMPT}\n"""`;
-        }
-        fs.writeFileSync(fullFilePath, tomlContent);
+        try {
+          let tomlContent = `description = "${COMMAND_DESCRIPTION}"`;
+          if (COMMAND_PROMPT) {
+            tomlContent += `\nprompt = """\n${COMMAND_PROMPT}\n"""`;
+          }
+          fs.writeFileSync(fullFilePath, tomlContent);
 
-        console.log(
-          chalk.green(
-            `Successfully added the command: ${COMMAND_PATH}`
-          )
-        );
+          console.log(
+            chalk.green(
+              `Successfully added the command: ${COMMAND_PATH}`
+            )
+          );
+        } catch (e) {
+          console.log(chalk.red(`Error writing command file: ${e.message}`));
+        }
         break;
       case 'List All Available Commands':
         listCommands();

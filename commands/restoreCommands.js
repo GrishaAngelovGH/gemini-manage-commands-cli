@@ -45,18 +45,34 @@ const restoreCommands = async () => {
 
         // Recursive merge function
         const mergeDirectories = (source, destination) => {
-          const entries = fs.readdirSync(source, { withFileTypes: true });
+          let entries;
+          try {
+            entries = fs.readdirSync(source, { withFileTypes: true });
+          } catch (e) {
+            console.error(chalk.red(`Error reading backup directory ${source}: ${e.message}`));
+            return;
+          }
+
           entries.forEach(entry => {
             const sourcePath = path.join(source, entry.name);
             const destinationPath = path.join(destination, entry.name);
 
             if (entry.isDirectory()) {
-              if (!fs.existsSync(destinationPath)) {
-                fs.mkdirSync(destinationPath, { recursive: true });
+              try {
+                if (!fs.existsSync(destinationPath)) {
+                  fs.mkdirSync(destinationPath, { recursive: true });
+                }
+              } catch (e) {
+                console.error(chalk.red(`Error creating directory ${destinationPath}: ${e.message}`));
+                return; // Skip this directory if it can't be created
               }
               mergeDirectories(sourcePath, destinationPath);
             } else {
-              fs.copyFileSync(sourcePath, destinationPath); // Overwrites if exists, copies if new
+              try {
+                fs.copyFileSync(sourcePath, destinationPath); // Overwrites if exists, copies if new
+              } catch (e) {
+                console.error(chalk.red(`Error copying file ${sourcePath} to ${destinationPath}: ${e.message}`));
+              }
             }
           });
         };
@@ -101,8 +117,13 @@ const restoreCommands = async () => {
     const fullActiveFilePath = path.join(commandActiveDirectory, commandFileName);
 
     // Ensure active directory exists
-    if (!fs.existsSync(commandActiveDirectory)) {
-      fs.mkdirSync(commandActiveDirectory, { recursive: true });
+    try {
+      if (!fs.existsSync(commandActiveDirectory)) {
+        fs.mkdirSync(commandActiveDirectory, { recursive: true });
+      }
+    } catch (e) {
+      console.log(chalk.red(`Error creating directory for command '${commandToRestore}': ${e.message}`));
+      return;
     }
 
     if (fs.existsSync(fullActiveFilePath)) {
@@ -114,8 +135,12 @@ const restoreCommands = async () => {
       },]);
 
       if (conflictAnswers.CONFLICT_RESOLUTION === 'Overwrite') {
-        fs.copyFileSync(fullBackupFilePath, fullActiveFilePath);
-        console.log(chalk.green(`Successfully restored and overwrote command: ${commandToRestore}`));
+        try {
+          fs.copyFileSync(fullBackupFilePath, fullActiveFilePath);
+          console.log(chalk.green(`Successfully restored and overwrote command: ${commandToRestore}`));
+        } catch (e) {
+          console.log(chalk.red(`Error overwriting command '${commandToRestore}': ${e.message}`));
+        }
       } else if (conflictAnswers.CONFLICT_RESOLUTION === 'Skip') {
         console.log(chalk.yellow(`Skipped restoring command: ${commandToRestore}`));
       } else if (conflictAnswers.CONFLICT_RESOLUTION === 'Go Back') {
@@ -123,8 +148,12 @@ const restoreCommands = async () => {
         return;
       }
     } else {
-      fs.copyFileSync(fullBackupFilePath, fullActiveFilePath);
-      console.log(chalk.green(`Successfully restored command: ${commandToRestore}`));
+      try {
+        fs.copyFileSync(fullBackupFilePath, fullActiveFilePath);
+        console.log(chalk.green(`Successfully restored command: ${commandToRestore}`));
+      } catch (e) {
+        console.log(chalk.red(`Error restoring command '${commandToRestore}': ${e.message}`));
+      }
     }
   }
 };

@@ -7,7 +7,14 @@ const getCommandNames = (baseDir, currentPath = '', allNames = []) => {
     return allNames;
   }
 
-  const entries = fs.readdirSync(baseDir, { withFileTypes: true });
+  let entries;
+  try {
+    entries = fs.readdirSync(baseDir, { withFileTypes: true });
+  } catch (e) {
+    console.error(`Error reading directory ${baseDir}: ${e.message}`);
+    return allNames;
+  }
+
   entries.forEach(entry => {
     const fullPath = path.join(baseDir, entry.name);
     if (entry.isDirectory()) {
@@ -25,14 +32,27 @@ const getParsedCommands = (baseDir, currentPath = '', allCommands = []) => {
     return allCommands;
   }
 
-  const entries = fs.readdirSync(baseDir, { withFileTypes: true });
+  let entries;
+  try {
+    entries = fs.readdirSync(baseDir, { withFileTypes: true });
+  } catch (e) {
+    console.error(`Error reading directory ${baseDir}: ${e.message}`);
+    return allCommands;
+  }
+
   entries.forEach(entry => {
     const fullPath = path.join(baseDir, entry.name);
     if (entry.isDirectory()) {
       getParsedCommands(fullPath, `${currentPath}${entry.name}/`, allCommands);
     } else if (entry.name.endsWith('.toml')) {
       const commandName = entry.name.replace('.toml', '');
-      const commandContent = fs.readFileSync(fullPath, 'utf8');
+      let commandContent;
+      try {
+        commandContent = fs.readFileSync(fullPath, 'utf8');
+      } catch (e) {
+        console.error(`Error reading file ${fullPath}: ${e.message}`);
+        return; // Skip this file if it can't be read
+      }
       try {
         const parsedCommand = toml.parse(commandContent);
         allCommands.push({

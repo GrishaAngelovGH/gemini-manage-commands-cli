@@ -7,6 +7,38 @@ const { homedir } = require('os');
 const GEMINI_DIR = path.join(homedir(), '.gemini');
 const COMMANDS_FILE = path.join(GEMINI_DIR, 'commands');
 
+const importCommandsFromJson = async () => {
+  const importDirectory = '.'; // Always use the current directory
+
+  let jsonFiles;
+  try {
+    jsonFiles = fs.readdirSync(importDirectory).filter(file => file.endsWith('.json') && file !== 'package.json' && file !== 'package-lock.json');
+  } catch (e) {
+    console.log(chalk.red(`Error reading current directory for JSON files: ${e.message}`));
+    console.log(chalk.yellow('Import cancelled.'));
+    return;
+  }
+
+  if (jsonFiles.length === 0) {
+    console.log(chalk.yellow('No JSON files found.'));
+    console.log(chalk.yellow('Import cancelled. No JSON files found in the current directory.'));
+    return;
+  }
+
+  const fileAnswers = await inquirer.prompt([{
+    name: 'SELECTED_FILE',
+    type: 'list',
+    message: 'Select the JSON file to import:',
+    choices: [...jsonFiles, new inquirer.Separator(), 'Go Back'],
+  },]);
+
+  if (fileAnswers.SELECTED_FILE === 'Go Back') {
+    console.log(chalk.yellow('Import cancelled.'));
+    return;
+  }
+  await processImport(path.join(importDirectory, fileAnswers.SELECTED_FILE));
+};
+
 const processImport = async (importFilePath) => {
   if (!fs.existsSync(importFilePath)) {
     console.log(chalk.red(`Error: File not found at ${importFilePath}`));
@@ -50,8 +82,13 @@ const processImport = async (importFilePath) => {
     }
 
     // Ensure commands directory exists
-    if (!fs.existsSync(fullCommandsPath)) {
-      fs.mkdirSync(fullCommandsPath, { recursive: true });
+    try {
+      if (!fs.existsSync(fullCommandsPath)) {
+        fs.mkdirSync(fullCommandsPath, { recursive: true });
+      }
+    } catch (e) {
+      console.log(chalk.red(`  Error creating directory for command '${cmd.name}': ${e.message}`));
+      continue;
     }
 
     let tomlContent = `description = "${cmd.description || ''}"`;
@@ -68,9 +105,13 @@ const processImport = async (importFilePath) => {
       },]);
 
       if (conflictAnswers.CONFLICT_RESOLUTION === 'Overwrite') {
-        fs.writeFileSync(fullActiveFilePath, tomlContent);
-        console.log(chalk.green(`  Overwrote command: ${cmd.name}`));
-        importedCount++;
+        try {
+          fs.writeFileSync(fullActiveFilePath, tomlContent);
+          console.log(chalk.green(`  Overwrote command: ${cmd.name}`));
+          importedCount++;
+        } catch (e) {
+          console.log(chalk.red(`  Error overwriting command '${cmd.name}': ${e.message}`));
+        }
       } else if (conflictAnswers.CONFLICT_RESOLUTION === 'Rename') {
         const renameAnswers = await inquirer.prompt([{
           name: 'NEW_NAME',
@@ -81,47 +122,30 @@ const processImport = async (importFilePath) => {
         const newCommandName = renameAnswers.NEW_NAME.split('/').pop();
         const newSubDirectory = renameAnswers.NEW_NAME.split('/').slice(0, -1).join('/');
         const newFullCommandsPath = path.join(COMMANDS_FILE, newSubDirectory);
-        if (!fs.existsSync(newFullCommandsPath)) {
-          fs.mkdirSync(newFullCommandsPath, { recursive: true });
+        try {
+          if (!fs.existsSync(newFullCommandsPath)) {
+            fs.mkdirSync(newFullCommandsPath, { recursive: true });
+          }
+          fs.writeFileSync(path.join(newFullCommandsPath, `${newCommandName}.toml`), tomlContent);
+          console.log(chalk.green(`  Imported command as: ${renameAnswers.NEW_NAME}`));
+          importedCount++;
+        } catch (e) {
+          console.log(chalk.red(`  Error renaming and importing command '${cmd.name}': ${e.message}`));
         }
-        fs.writeFileSync(path.join(newFullCommandsPath, `${newCommandName}.toml`), tomlContent);
-        console.log(chalk.green(`  Imported command as: ${renameAnswers.NEW_NAME}`));
-        importedCount++;
       } else if (conflictAnswers.CONFLICT_RESOLUTION === 'Skip') {
         console.log(chalk.yellow(`  Skipped command: ${cmd.name}`));
       }
     } else {
-      fs.writeFileSync(fullActiveFilePath, tomlContent);
-      console.log(chalk.green(`  Imported new command: ${cmd.name}`));
-      importedCount++;
+      try {
+        fs.writeFileSync(fullActiveFilePath, tomlContent);
+        console.log(chalk.green(`  Imported new command: ${cmd.name}`));
+        importedCount++;
+      } catch (e) {
+        console.log(chalk.red(`  Error importing new command '${cmd.name}': ${e.message}`));
+      }
     }
   }
   console.log(chalk.green(`Successfully imported ${importedCount} commands.`));
-};
-
-const importCommandsFromJson = async () => {
-  const importDirectory = '.'; // Always use the current directory
-
-  const jsonFiles = fs.readdirSync(importDirectory).filter(file => file.endsWith('.json') && file !== 'package.json' && file !== 'package-lock.json');
-
-  if (jsonFiles.length === 0) {
-    console.log(chalk.yellow('No JSON files found.'));
-    console.log(chalk.yellow('Import cancelled. No JSON files found in the current directory.'));
-    return;
-  }
-
-  const fileAnswers = await inquirer.prompt([{
-    name: 'SELECTED_FILE',
-    type: 'list',
-    message: 'Select the JSON file to import:',
-    choices: [...jsonFiles, new inquirer.Separator(), 'Go Back'],
-  },]);
-
-  if (fileAnswers.SELECTED_FILE === 'Go Back') {
-    console.log(chalk.yellow('Import cancelled.'));
-    return;
-  }
-  await processImport(path.join(importDirectory, fileAnswers.SELECTED_FILE));
 };
 
 module.exports = importCommandsFromJson
