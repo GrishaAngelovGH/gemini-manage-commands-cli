@@ -25,12 +25,19 @@ const importCommandsFromJson = async () => {
     return;
   }
 
-  const fileAnswers = await inquirer.prompt([{
-    name: 'SELECTED_FILE',
-    type: 'list',
-    message: 'Select the JSON file to import:',
-    choices: [...jsonFiles, new inquirer.Separator(), 'Go Back'],
-  },]);
+  let fileAnswers;
+  try {
+    fileAnswers = await inquirer.prompt([{
+      name: 'SELECTED_FILE',
+      type: 'list',
+      message: 'Select the JSON file to import:',
+      choices: [...jsonFiles, new inquirer.Separator(), 'Go Back'],
+    },]);
+  } catch (e) {
+    console.log(chalk.red(`Error during file selection prompt: ${e.message}`));
+    console.log(chalk.yellow('Import cancelled.'));
+    return;
+  }
 
   if (fileAnswers.SELECTED_FILE === 'Go Back') {
     console.log(chalk.yellow('Import cancelled.'));
@@ -97,12 +104,18 @@ const processImport = async (importFilePath) => {
     }
 
     if (fs.existsSync(fullActiveFilePath)) {
-      const conflictAnswers = await inquirer.prompt([{
-        name: 'CONFLICT_RESOLUTION',
-        type: 'list',
-        message: `Command '${cmd.name}' already exists. What would you like to do?`,
-        choices: ['Overwrite', 'Skip', 'Rename'],
-      },]);
+      let conflictAnswers;
+      try {
+        conflictAnswers = await inquirer.prompt([{
+          name: 'CONFLICT_RESOLUTION',
+          type: 'list',
+          message: `Command '${cmd.name}' already exists. What would you like to do?`,
+          choices: ['Overwrite', 'Skip', 'Rename'],
+        },]);
+      } catch (e) {
+        console.log(chalk.red(`  Error during conflict resolution prompt for '${cmd.name}': ${e.message}`));
+        continue; // Skip this command and proceed to the next
+      }
 
       if (conflictAnswers.CONFLICT_RESOLUTION === 'Overwrite') {
         try {
@@ -113,12 +126,18 @@ const processImport = async (importFilePath) => {
           console.log(chalk.red(`  Error overwriting command '${cmd.name}': ${e.message}`));
         }
       } else if (conflictAnswers.CONFLICT_RESOLUTION === 'Rename') {
-        const renameAnswers = await inquirer.prompt([{
-          name: 'NEW_NAME',
-          type: 'input',
-          message: `Enter new name for '${cmd.name}':`,
-          default: `${cmd.name}_imported`,
-        },]);
+        let renameAnswers;
+        try {
+          renameAnswers = await inquirer.prompt([{
+            name: 'NEW_NAME',
+            type: 'input',
+            message: `Enter new name for '${cmd.name}':`,
+            default: `${cmd.name}_imported`,
+          },]);
+        } catch (e) {
+          console.log(chalk.red(`  Error during rename prompt for '${cmd.name}': ${e.message}`));
+          continue; // Skip this command and proceed to the next
+        }
         const newCommandName = renameAnswers.NEW_NAME.split('/').pop();
         const newSubDirectory = renameAnswers.NEW_NAME.split('/').slice(0, -1).join('/');
         const newFullCommandsPath = path.join(COMMANDS_FILE, newSubDirectory);

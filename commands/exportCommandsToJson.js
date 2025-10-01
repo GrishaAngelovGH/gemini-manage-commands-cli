@@ -23,13 +23,19 @@ const exportCommandsToJson = async () => {
     return;
   }
 
-  const answers = await inquirer.prompt([{
-    name: 'FILENAME',
-    type: 'input',
-    message: 'Enter the filename for the JSON export (e.g., my_commands.json):',
-    default: 'commands_export.json',
-  },
-  ]);
+  let answers;
+  try {
+    answers = await inquirer.prompt([{
+      name: 'FILENAME',
+      type: 'input',
+      message: 'Enter the filename for the JSON export (e.g., my_commands.json):',
+      default: 'commands_export.json',
+    },
+    ]);
+  } catch (e) {
+    console.log(chalk.red(`Error during filename prompt: ${e.message}`));
+    return;
+  }
 
   let exportFileName = answers.FILENAME;
   if (!exportFileName.endsWith('.json')) {

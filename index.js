@@ -47,46 +47,58 @@ const run = async () => {
   let running = true;
   while (running) {
     // ask questions
-    const answers = await askQuestions();
+    let answers;
+    try {
+      answers = await askQuestions();
+    } catch (e) {
+      console.log(chalk.red(`Error during main menu prompt: ${e.message}`));
+      continue; // Continue the loop to show the menu again
+    }
     const { MENU_CHOICE } = answers;
 
     switch (MENU_CHOICE) {
       case 'Add New Command':
-        const addCommandAnswers = await inquirer.prompt([
-          {
-            name: 'COMMAND_PATH',
-            type: 'input',
-            message: 'Enter the command path (e.g., git/commit or mycommand):',
-            validate: function (value) {
-              if (value && value.trim().length > 0) {
-                return true;
+        let addCommandAnswers;
+        try {
+          addCommandAnswers = await inquirer.prompt([
+            {
+              name: 'COMMAND_PATH',
+              type: 'input',
+              message: 'Enter the command path (e.g., git/commit or mycommand):',
+              validate: function (value) {
+                if (value && value.trim().length > 0) {
+                  return true;
+                }
+                return 'Command path cannot be empty.';
               }
-              return 'Command path cannot be empty.';
-            }
-          },
-          {
-            name: 'COMMAND_DESCRIPTION',
-            type: 'input',
-            message: 'Enter a brief description for the command:',
-            validate: function (value) {
-              if (value && value.trim().length > 0) {
-                return true;
+            },
+            {
+              name: 'COMMAND_DESCRIPTION',
+              type: 'input',
+              message: 'Enter a brief description for the command:',
+              validate: function (value) {
+                if (value && value.trim().length > 0) {
+                  return true;
+                }
+                return 'Command description cannot be empty.';
               }
-              return 'Command description cannot be empty.';
-            }
-          },
-          {
-            name: 'COMMAND_PROMPT',
-            type: 'input',
-            message: 'Enter the prompt content:',
-            validate: function (value) {
-              if (value && value.trim().length > 0) {
-                return true;
+            },
+            {
+              name: 'COMMAND_PROMPT',
+              type: 'input',
+              message: 'Enter the prompt content:',
+              validate: function (value) {
+                if (value && value.trim().length > 0) {
+                  return true;
+                }
+                return 'Command prompt cannot be empty.';
               }
-              return 'Command prompt cannot be empty.';
-            }
-          },
-        ]);
+            },
+          ]);
+        } catch (e) {
+          console.log(chalk.red(`Error during add command prompt: ${e.message}`));
+          break; // Exit this case and return to main menu
+        }
         const { COMMAND_PATH, COMMAND_DESCRIPTION, COMMAND_PROMPT } = addCommandAnswers;
 
         // Parse COMMAND_PATH to get the command name and subdirectory
@@ -107,12 +119,18 @@ const run = async () => {
         }
 
         if (fs.existsSync(fullFilePath)) {
-          const overwriteAnswer = await inquirer.prompt([{
-            name: 'CONFIRM_OVERWRITE',
-            type: 'confirm',
-            message: `Command '${COMMAND_PATH}' already exists. Do you want to overwrite it?`,
-            default: false,
-          }]);
+          let overwriteAnswer;
+          try {
+            overwriteAnswer = await inquirer.prompt([{
+              name: 'CONFIRM_OVERWRITE',
+              type: 'confirm',
+              message: `Command '${COMMAND_PATH}' already exists. Do you want to overwrite it?`,
+              default: false,
+            }]);
+          } catch (e) {
+            console.log(chalk.red(`Error during overwrite confirmation prompt: ${e.message}`));
+            break; // Exit this case and return to main menu
+          }
 
           if (!overwriteAnswer.CONFIRM_OVERWRITE) {
             console.log(chalk.yellow('Overwrite cancelled. Command not added.'));

@@ -19,24 +19,36 @@ const deleteCommand = async () => {
       return;
     }
 
-    const answers = await inquirer.prompt([{
-      name: 'COMMAND_TO_DELETE',
-      type: 'list',
-      message: 'Which command would you like to delete?',
-      choices: [...allCommands, new inquirer.Separator(), 'Go Back'],
-    },]);
+    let answers;
+    try {
+      answers = await inquirer.prompt([{
+        name: 'COMMAND_TO_DELETE',
+        type: 'list',
+        message: 'Which command would you like to delete?',
+        choices: [...allCommands, new inquirer.Separator(), 'Go Back'],
+      },]);
+    } catch (e) {
+      console.log(chalk.red(`Error during command selection prompt: ${e.message}`));
+      return;
+    }
 
     if (answers.COMMAND_TO_DELETE === 'Go Back') {
       console.log(chalk.yellow('Returning to main menu.'));
       return;
     }
 
-    const confirmAnswer = await inquirer.prompt([{
-      name: 'CONFIRM_DELETE',
-      type: 'confirm',
-      message: `Are you sure you want to delete ${answers.COMMAND_TO_DELETE}?`,
-      default: false,
-    },]);
+    let confirmAnswer;
+    try {
+      confirmAnswer = await inquirer.prompt([{
+        name: 'CONFIRM_DELETE',
+        type: 'confirm',
+        message: `Are you sure you want to delete ${answers.COMMAND_TO_DELETE}?`,
+        default: false,
+      },]);
+    } catch (e) {
+      console.log(chalk.red(`Error during delete confirmation prompt: ${e.message}`));
+      return;
+    }
 
     if (confirmAnswer.CONFIRM_DELETE) {
       const commandToDelete = answers.COMMAND_TO_DELETE;

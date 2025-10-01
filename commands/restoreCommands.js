@@ -16,12 +16,18 @@ const restoreCommands = async () => {
     return;
   }
 
-  const scopeAnswers = await inquirer.prompt([{
-    name: 'RESTORE_SCOPE',
-    type: 'list',
-    message: 'What would you like to restore?',
-    choices: ['All commands (merge with existing)', 'A single command (merge)', 'Go Back'],
-  },]);
+  let scopeAnswers;
+  try {
+    scopeAnswers = await inquirer.prompt([{
+      name: 'RESTORE_SCOPE',
+      type: 'list',
+      message: 'What would you like to restore?',
+      choices: ['All commands (merge with existing)', 'A single command (merge)', 'Go Back'],
+    },]);
+  } catch (e) {
+    console.log(chalk.red(`Error during restore scope prompt: ${e.message}`));
+    return;
+  }
 
   if (scopeAnswers.RESTORE_SCOPE === 'Go Back') {
     console.log(chalk.yellow('Restore cancelled.'));
@@ -29,12 +35,18 @@ const restoreCommands = async () => {
   }
 
   if (scopeAnswers.RESTORE_SCOPE === 'All commands (merge with existing)') {
-    const confirmAnswers = await inquirer.prompt([{
-      name: 'CONFIRM_RESTORE',
-      type: 'confirm',
-      message: 'Are you sure you want to merge ALL commands from backup? This will add new commands and overwrite existing ones.',
-      default: false,
-    },]);
+    let confirmAnswers;
+    try {
+      confirmAnswers = await inquirer.prompt([{
+        name: 'CONFIRM_RESTORE',
+        type: 'confirm',
+        message: 'Are you sure you want to merge ALL commands from backup? This will add new commands and overwrite existing ones.',
+        default: false,
+      },]);
+    } catch (e) {
+      console.log(chalk.red(`Error during restore confirmation prompt: ${e.message}`));
+      return;
+    }
 
     if (confirmAnswers.CONFIRM_RESTORE) {
       try {
@@ -95,12 +107,18 @@ const restoreCommands = async () => {
       return;
     }
 
-    const selectCommandAnswers = await inquirer.prompt([{
-      name: 'COMMAND_TO_RESTORE',
-      type: 'list',
-      message: 'Which command would you like to restore from backup?',
-      choices: [...allBackupCommands, new inquirer.Separator(), 'Go Back'],
-    },]);
+    let selectCommandAnswers;
+    try {
+      selectCommandAnswers = await inquirer.prompt([{
+        name: 'COMMAND_TO_RESTORE',
+        type: 'list',
+        message: 'Which command would you like to restore from backup?',
+        choices: [...allBackupCommands, new inquirer.Separator(), 'Go Back'],
+      },]);
+    } catch (e) {
+      console.log(chalk.red(`Error during single command selection prompt: ${e.message}`));
+      return;
+    }
 
     if (selectCommandAnswers.COMMAND_TO_RESTORE === 'Go Back') {
       console.log(chalk.yellow('Restore cancelled.'));
@@ -127,12 +145,18 @@ const restoreCommands = async () => {
     }
 
     if (fs.existsSync(fullActiveFilePath)) {
-      const conflictAnswers = await inquirer.prompt([{
-        name: 'CONFLICT_RESOLUTION',
-        type: 'list',
-        message: `Command '${commandToRestore}' already exists. What would you like to do?`,
-        choices: ['Overwrite', 'Skip', 'Go Back'],
-      },]);
+      let conflictAnswers;
+      try {
+        conflictAnswers = await inquirer.prompt([{
+          name: 'CONFLICT_RESOLUTION',
+          type: 'list',
+          message: `Command '${commandToRestore}' already exists. What would you like to do?`,
+          choices: ['Overwrite', 'Skip', 'Go Back'],
+        },]);
+      } catch (e) {
+        console.log(chalk.red(`Error during conflict resolution prompt for '${commandToRestore}': ${e.message}`));
+        return;
+      }
 
       if (conflictAnswers.CONFLICT_RESOLUTION === 'Overwrite') {
         try {
