@@ -96,6 +96,15 @@ const run = async () => {
         const fullCommandsPath = path.join(COMMANDS_FILE, subDirectory);
         const fullFilePath = path.join(fullCommandsPath, `${commandName}.toml`);
 
+        // Security: Ensure path is within the commands directory.
+        const resolvedCommandsDir = path.resolve(COMMANDS_FILE);
+        const resolvedFilePath = path.resolve(fullFilePath);
+
+        if (!resolvedFilePath.startsWith(resolvedCommandsDir)) {
+          console.log(chalk.red(`Error: Command path must be inside the allowed directory: ${resolvedCommandsDir}. Aborting.`));
+          break;
+        }
+
         if (fs.existsSync(fullFilePath)) {
           const overwriteAnswer = await inquirer.prompt([{
             name: 'CONFIRM_OVERWRITE',
