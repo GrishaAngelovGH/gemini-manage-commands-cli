@@ -3,27 +3,16 @@ const inquirer = require('inquirer');
 const fs = require('fs');
 const path = require('path');
 const { homedir } = require('os');
+const { getCommandNames } = require('./commandFinder');
 
 const GEMINI_DIR = path.join(homedir(), '.gemini');
 const COMMANDS_FILE = path.join(GEMINI_DIR, 'commands');
 
 const deleteCommand = async () => {
   const allCommands = [];
-  const collectCommands = (dir, prefix = '') => {
-    const entries = fs.readdirSync(dir, { withFileTypes: true });
-    entries.forEach(entry => {
-      const fullPath = path.join(dir, entry.name);
-      if (entry.isDirectory()) {
-        collectCommands(fullPath, `${prefix}${entry.name}/`);
-      } else if (entry.name.endsWith('.toml')) {
-        const commandName = entry.name.replace('.toml', '');
-        allCommands.push(`${prefix}${commandName}`);
-      }
-    });
-  };
 
   if (fs.existsSync(COMMANDS_FILE) && fs.lstatSync(COMMANDS_FILE).isDirectory()) {
-    collectCommands(COMMANDS_FILE);
+    allCommands.push(...getCommandNames(COMMANDS_FILE));
 
     if (allCommands.length === 0) {
       console.log(chalk.yellow('No commands to delete.'));
