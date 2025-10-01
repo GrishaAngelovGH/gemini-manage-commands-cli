@@ -34,6 +34,7 @@ const askQuestions = () => {
     name: 'MENU_CHOICE',
     type: 'list',
     message: 'What would you like to do?',
+    pageSize: 8,
     choices: ['Add new command', 'List all available commands', 'Delete command', 'Backup commands', 'Restore commands', 'Export commands to JSON', 'Import commands from JSON', 'Exit'],
   },];
   return inquirer.prompt(questions);
@@ -56,7 +57,7 @@ const run = async () => {
             name: 'COMMAND_PATH',
             type: 'input',
             message: 'Enter the command path (e.g., git/commit or mycommand):',
-            validate: function(value) {
+            validate: function (value) {
               if (value && value.trim().length > 0) {
                 return true;
               }
@@ -67,7 +68,7 @@ const run = async () => {
             name: 'COMMAND_DESCRIPTION',
             type: 'input',
             message: 'Enter a brief description for the command:',
-            validate: function(value) {
+            validate: function (value) {
               if (value && value.trim().length > 0) {
                 return true;
               }
@@ -78,7 +79,7 @@ const run = async () => {
             name: 'COMMAND_PROMPT',
             type: 'input',
             message: 'Enter the prompt content:',
-            validate: function(value) {
+            validate: function (value) {
               if (value && value.trim().length > 0) {
                 return true;
               }
@@ -162,7 +163,7 @@ const run = async () => {
         break;
       case 'Exit':
         running = false;
-        console.log(chalk.green('Exiting Gemini Add Custom Commands CLI. Goodbye!'));
+        console.log(chalk.green('Exiting Gemini Manage Commands CLI. Goodbye!'));
         break;
     }
   }

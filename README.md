@@ -1,6 +1,6 @@
 # Gemini Manage Commands CLI
 
-This is the Gemini Manage Commands CLI, a powerful command-line interface tool designed to help users efficiently manage their custom Gemini commands. It allows users to add, list, delete, backup, restore, export, and import their personalized commands, ensuring a streamlined workflow for their Gemini environment.
+This is the Gemini Manage Commands CLI, a powerful command-line interface tool designed to help users efficiently manage their custom Gemini commands. It allows users to add, list, delete, backup, restore, export, and import their personalized commands, ensuring a streamlined workflow for their Gemini environment. For advanced users, it's helpful to know that all commands are stored as individual `.toml` files within the `~/.gemini/commands` directory.
 
 ## Features
 
@@ -35,8 +35,6 @@ To use the Gemini Manage Commands CLI, run the main command from the user's term
 gemini-manage-commands
 ```
 
-This will present the user with an interactive menu of options. Below are details on each functionality:
-
 ### Add New Command
 
 This option allows the user to create a new custom command. The user will be prompted to enter:
@@ -70,8 +68,16 @@ This allows the user to export all custom commands into a single JSON file. The 
 
 ### Import Commands from JSON
 
-This option facilitates importing commands from a JSON file. The CLI will first look for `commands_export.json` in the specified directory, but also provides an option to manually enter the path to any other JSON export file. The CLI will then guide the user through selecting the file and handling any potential conflicts with existing commands.
+This option facilitates importing commands from a JSON file. The user is first asked to specify a directory. The CLI then intelligently scans this directory for any `.json` files (ignoring common config files like `package.json`) and presents them in a list to choose from. It also provides an option to enter a full path to a file manually. Once a file is selected, the CLI guides the user through handling any potential conflicts with existing commands (overwrite, skip, or rename).
 
 ### Exit
 
 Exits the Gemini Manage Commands CLI.
+
+## This project is built using the following technologies:
+
+![Node.js](https://img.shields.io/badge/Node.js-gray?style=flat&logo=node.js&logoColor=white)
+![Inquirer.js](https://img.shields.io/badge/inquirer-gray?style=flat)
+![Chalk](https://img.shields.io/badge/chalk-gray?style=flat)
+![Figlet](https://img.shields.io/badge/figlet-gray?style=flat)
+![TOML](https://img.shields.io/badge/TOML-gray?style=flat)
