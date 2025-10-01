@@ -94,6 +94,21 @@ const run = async () => {
         const subDirectory = pathParts.join('/');
 
         const fullCommandsPath = path.join(COMMANDS_FILE, subDirectory);
+        const fullFilePath = path.join(fullCommandsPath, `${commandName}.toml`);
+
+        if (fs.existsSync(fullFilePath)) {
+          const overwriteAnswer = await inquirer.prompt([{
+            name: 'CONFIRM_OVERWRITE',
+            type: 'confirm',
+            message: `Command '${COMMAND_PATH}' already exists. Do you want to overwrite it?`,
+            default: false,
+          }]);
+
+          if (!overwriteAnswer.CONFIRM_OVERWRITE) {
+            console.log(chalk.yellow('Overwrite cancelled. Command not added.'));
+            break;
+          }
+        }
 
         // Create .gemini directory if it doesn't exist
         if (!fs.existsSync(GEMINI_DIR)) {
@@ -110,7 +125,7 @@ const run = async () => {
         if (COMMAND_PROMPT) {
           tomlContent += `\nprompt = """\n${COMMAND_PROMPT}\n"""`;
         }
-        fs.writeFileSync(path.join(fullCommandsPath, `${commandName}.toml`), tomlContent);
+        fs.writeFileSync(fullFilePath, tomlContent);
 
         console.log(
           chalk.green(
