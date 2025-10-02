@@ -13,6 +13,7 @@ The Gemini Manage Commands CLI provides the following functionalities:
 *   **Restore Commands**: Restore custom commands from a previously created backup, with options to merge or overwrite.
 *   **Export Commands to JSON**: Export custom commands to a JSON file for sharing or external management.
 *   **Import Commands from JSON**: Import custom commands from a JSON file, allowing for easy integration of shared commands.
+*   **Open Commands Folder**: Quickly open the folder containing all command files in the system's default file explorer.
 *   **Clear Screen**: Clear the terminal screen to refresh the view.
 
 
@@ -70,6 +71,10 @@ This allows the user to export all custom commands into a single JSON file. The 
 ### Import Commands from JSON
 
 This option facilitates importing commands from a JSON file. The CLI intelligently scans the current directory for any `.json` files (ignoring common config files like `package.json`) and presents them in a list to choose from. Once a file is selected, the CLI guides the user through handling any potential conflicts with existing commands (overwrite, skip, or rename).
+
+### Open Commands Folder
+
+This provides a convenient shortcut to open the `~/.gemini/commands` directory in the system's default file explorer. This is useful for users who wish to view or edit their command `.toml` files directly.
 
 ### Clear Screen
 

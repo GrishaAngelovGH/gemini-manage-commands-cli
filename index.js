@@ -13,6 +13,7 @@ import backupCommands from './commands/backupCommands.js';
 import restoreCommands from './commands/restoreCommands.js';
 import exportCommandsToJson from './commands/exportCommandsToJson.js';
 import importCommandsFromJson from './commands/importCommandsFromJson.js';
+import openCommandsFolder from './commands/openCommandsFolder.js';
 
 const GEMINI_DIR = path.join(homedir(), '.gemini');
 const COMMANDS_FILE = path.join(GEMINI_DIR, 'commands');
@@ -34,8 +35,8 @@ const askQuestions = () => {
     name: 'MENU_CHOICE',
     type: 'list',
     message: 'What would you like to do?',
-    pageSize: 9,
-    choices: ['Add New Command', 'List All Available Commands', 'Delete Command', 'Backup Commands', 'Restore Commands', 'Export Commands to JSON', 'Import Commands from JSON', 'Clear Screen', 'Exit'],
+    pageSize: 10,
+    choices: ['Add New Command', 'List All Available Commands', 'Delete Command', 'Backup Commands', 'Restore Commands', 'Export Commands to JSON', 'Import Commands from JSON', 'Open Commands Folder', 'Clear Screen', 'Exit'],
   },];
   return inquirer.prompt(questions);
 };
@@ -192,6 +193,9 @@ const run = async () => {
         break;
       case 'Import Commands from JSON':
         await importCommandsFromJson();
+        break;
+      case 'Open Commands Folder':
+        await openCommandsFolder();
         break;
       case 'Clear Screen':
         console.clear();
