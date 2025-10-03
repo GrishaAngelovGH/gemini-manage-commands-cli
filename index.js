@@ -6,6 +6,7 @@ import inquirer from 'inquirer';
 import * as fs from 'node:fs';
 import path from 'node:path';
 import { homedir } from 'node:os';
+import logSymbols from 'log-symbols';
 
 import listCommands from './commands/listCommands.js';
 import deleteCommand from './commands/deleteCommand.js';
@@ -52,7 +53,7 @@ const run = async () => {
     try {
       answers = await askQuestions();
     } catch (e) {
-      console.log(chalk.red(`Error during main menu prompt: ${e.message}`));
+      console.log(logSymbols.error, chalk.red(`Error during main menu prompt: ${e.message}`));
       continue; // Continue the loop to show the menu again
     }
     const { MENU_CHOICE } = answers;
@@ -97,7 +98,7 @@ const run = async () => {
             },
           ]);
         } catch (e) {
-          console.log(chalk.red(`Error during add command prompt: ${e.message}`));
+          console.log(logSymbols.error, chalk.red(`Error during add command prompt: ${e.message}`));
           break; // Exit this case and return to main menu
         }
         const { COMMAND_PATH, COMMAND_DESCRIPTION, COMMAND_PROMPT } = addCommandAnswers;
@@ -115,7 +116,7 @@ const run = async () => {
         const resolvedFilePath = path.resolve(fullFilePath);
 
         if (!resolvedFilePath.startsWith(resolvedCommandsDir)) {
-          console.log(chalk.red(`Error: Command path must be inside the allowed directory: ${resolvedCommandsDir}. Aborting.`));
+          console.log(logSymbols.error, chalk.red(`Error: Command path must be inside the allowed directory: ${resolvedCommandsDir}. Aborting.`));
           break;
         }
 
@@ -129,12 +130,12 @@ const run = async () => {
               default: false,
             }]);
           } catch (e) {
-            console.log(chalk.red(`Error during overwrite confirmation prompt: ${e.message}`));
+            console.log(logSymbols.error, chalk.red(`Error during overwrite confirmation prompt: ${e.message}`));
             break; // Exit this case and return to main menu
           }
 
           if (!overwriteAnswer.CONFIRM_OVERWRITE) {
-            console.log(chalk.yellow('Overwrite cancelled. Command not added.'));
+            console.log(logSymbols.warning, chalk.yellow('Overwrite cancelled. Command not added.'));
             break;
           }
         }
@@ -145,7 +146,7 @@ const run = async () => {
             fs.mkdirSync(GEMINI_DIR);
           }
         } catch (e) {
-          console.log(chalk.red(`Error creating Gemini directory: ${e.message}`));
+          console.log(logSymbols.error, chalk.red(`Error creating Gemini directory: ${e.message}`));
           break;
         }
 
@@ -155,7 +156,7 @@ const run = async () => {
             fs.mkdirSync(fullCommandsPath, { recursive: true });
           }
         } catch (e) {
-          console.log(chalk.red(`Error creating command directory: ${e.message}`));
+          console.log(logSymbols.error, chalk.red(`Error creating command directory: ${e.message}`));
           break;
         }
 
@@ -168,12 +169,13 @@ const run = async () => {
           fs.writeFileSync(fullFilePath, tomlContent);
 
           console.log(
+            logSymbols.success,
             chalk.green(
               `Successfully added the command: ${COMMAND_PATH}`
             )
           );
         } catch (e) {
-          console.log(chalk.red(`Error writing command file: ${e.message}`));
+          console.log(logSymbols.error, chalk.red(`Error writing command file: ${e.message}`));
         }
         break;
       case 'List All Available Commands':
@@ -202,7 +204,7 @@ const run = async () => {
         break;
       case 'Exit':
         running = false;
-        console.log(chalk.green('Exiting Gemini Manage Commands CLI. Goodbye!'));
+        console.log(logSymbols.success, chalk.green('Exiting Gemini Manage Commands CLI. Goodbye!'));
         break;
     }
   }

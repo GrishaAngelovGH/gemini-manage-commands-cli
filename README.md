@@ -91,3 +91,4 @@ Exits the Gemini Manage Commands CLI.
 ![Chalk](https://img.shields.io/badge/chalk-gray?style=flat)
 ![Figlet](https://img.shields.io/badge/figlet-gray?style=flat)
 ![TOML](https://img.shields.io/badge/TOML-gray?style=flat)
+![log-symbols](https://img.shields.io/badge/log--symbols-gray?style=flat)

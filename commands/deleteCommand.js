@@ -4,6 +4,7 @@ import * as fs from 'node:fs';
 import path from 'node:path';
 import { homedir } from 'node:os';
 import { getCommandNames } from './commandFinder.js';
+import logSymbols from 'log-symbols';
 
 const GEMINI_DIR = path.join(homedir(), '.gemini');
 const COMMANDS_FILE = path.join(GEMINI_DIR, 'commands');
@@ -15,7 +16,7 @@ const deleteCommand = async () => {
     allCommands.push(...getCommandNames(COMMANDS_FILE));
 
     if (allCommands.length === 0) {
-      console.log(chalk.yellow('No commands to delete.'));
+      console.log(logSymbols.warning, chalk.yellow('No commands to delete.'));
       return;
     }
 
@@ -28,12 +29,12 @@ const deleteCommand = async () => {
         choices: [...allCommands, new inquirer.Separator(), 'Go Back'],
       },]);
     } catch (e) {
-      console.log(chalk.red(`Error during command selection prompt: ${e.message}`));
+      console.log(logSymbols.error, chalk.red(`Error during command selection prompt: ${e.message}`));
       return;
     }
 
     if (answers.COMMAND_TO_DELETE === 'Go Back') {
-      console.log(chalk.yellow('Returning to main menu.'));
+      console.log(logSymbols.info, chalk.yellow('Returning to main menu.'));
       return;
     }
 
@@ -46,7 +47,7 @@ const deleteCommand = async () => {
         default: false,
       },]);
     } catch (e) {
-      console.log(chalk.red(`Error during delete confirmation prompt: ${e.message}`));
+      console.log(logSymbols.error, chalk.red(`Error during delete confirmation prompt: ${e.message}`));
       return;
     }
 
@@ -62,13 +63,13 @@ const deleteCommand = async () => {
       const resolvedFilePath = path.resolve(fullFilePath);
 
       if (!resolvedFilePath.startsWith(resolvedCommandsDir)) {
-        console.log(chalk.red(`Error: Command '${commandToDelete}' has a malicious path. Deletion aborted.`));
+        console.log(logSymbols.error, chalk.red(`Error: Command '${commandToDelete}' has a malicious path. Deletion aborted.`));
         return;
       }
 
       try {
         fs.unlinkSync(fullFilePath);
-        console.log(chalk.green(`Successfully deleted command: ${commandToDelete}`));
+        console.log(logSymbols.success, chalk.green(`Successfully deleted command: ${commandToDelete}`));
 
         // Clean up empty directories
         let currentDir = commandDirectory;
@@ -78,14 +79,14 @@ const deleteCommand = async () => {
         }
 
       } catch (e) {
-        console.log(chalk.red(`Error deleting command ${commandToDelete}: ${e.message}`));
+        console.log(logSymbols.error, chalk.red(`Error deleting command ${commandToDelete}: ${e.message}`));
       }
     } else {
-      console.log(chalk.yellow('Deletion cancelled.'));
+      console.log(logSymbols.info, chalk.yellow('Deletion cancelled.'));
     }
 
   } else {
-    console.log(chalk.yellow('No commands directory found.'));
+    console.log(logSymbols.warning, chalk.yellow('No commands directory found.'));
   }
 };
 

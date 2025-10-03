@@ -3,17 +3,18 @@ import * as fs from 'node:fs';
 import path from 'node:path';
 import { homedir } from 'node:os';
 import { getParsedCommands } from './commandFinder.js';
+import logSymbols from 'log-symbols';
 
 const GEMINI_DIR = path.join(homedir(), '.gemini');
 const COMMANDS_FILE = path.join(GEMINI_DIR, 'commands');
 
 const listCommands = () => {
   if (fs.existsSync(COMMANDS_FILE) && fs.lstatSync(COMMANDS_FILE).isDirectory()) {
-    console.log(chalk.green('Available commands:'));
+    console.log(logSymbols.info, chalk.green('Available commands:'));
     const commands = getParsedCommands(COMMANDS_FILE);
 
     if (commands.length === 0) {
-      console.log(chalk.yellow('No commands found.'));
+      console.log(logSymbols.warning, chalk.yellow('No commands found.'));
       return;
     }
 
@@ -28,7 +29,7 @@ const listCommands = () => {
       console.log(chalk.gray('────────────────────────────────────────'));
     });
   } else {
-    console.log(chalk.yellow('No commands found.'));
+    console.log(logSymbols.warning, chalk.yellow('No commands found.'));
   }
 };
 

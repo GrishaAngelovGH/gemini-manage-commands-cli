@@ -14,6 +14,7 @@ const fs = await import('node:fs');
 const { default: openCommandsFolder } = await import('./openCommandsFolder.js');
 const path = await import('node:path');
 const { homedir } = await import('node:os');
+const logSymbols = (await import('log-symbols')).default;
 
 const GEMINI_DIR = path.join(homedir(), '.gemini');
 const COMMANDS_FILE = path.join(GEMINI_DIR, 'commands');
@@ -35,7 +36,7 @@ describe('openCommandsFolder', () => {
     await openCommandsFolder();
 
     expect(open).toHaveBeenCalledWith(COMMANDS_FILE);
-    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Opened the commands directory'));
+    expect(consoleLogSpy).toHaveBeenCalledWith(logSymbols.success, expect.stringContaining('Opened the commands directory'));
   });
 
   it('should show a warning if the folder does not exist', async () => {
@@ -43,7 +44,7 @@ describe('openCommandsFolder', () => {
     await openCommandsFolder();
 
     expect(open).not.toHaveBeenCalled();
-    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('directory does not exist yet'));
+    expect(consoleLogSpy).toHaveBeenCalledWith(logSymbols.warning, expect.stringContaining('directory does not exist yet'));
   });
 
   it('should handle errors when trying to open the directory', async () => {
@@ -54,6 +55,7 @@ describe('openCommandsFolder', () => {
     await openCommandsFolder();
 
     expect(open).toHaveBeenCalledWith(COMMANDS_FILE);
-    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining(`Error opening directory: ${errorMessage}`));
+    expect(consoleLogSpy).toHaveBeenCalledWith(logSymbols.error, expect.stringContaining(`Error opening directory: ${errorMessage}`));
+    expect(consoleLogSpy).toHaveBeenCalledWith(logSymbols.info, expect.stringContaining('You may need to open it manually.'));
   });
 });

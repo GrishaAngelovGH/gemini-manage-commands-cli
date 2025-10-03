@@ -4,6 +4,7 @@ import * as fs from 'node:fs';
 import path from 'node:path';
 import { homedir } from 'node:os';
 import { getParsedCommands } from './commandFinder.js';
+import logSymbols from 'log-symbols';
 
 const GEMINI_DIR = path.join(homedir(), '.gemini');
 const COMMANDS_FILE = path.join(GEMINI_DIR, 'commands');
@@ -12,14 +13,14 @@ const exportCommandsToJson = async () => {
   const allCommands = [];
 
   if (!fs.existsSync(COMMANDS_FILE) || !fs.lstatSync(COMMANDS_FILE).isDirectory()) {
-    console.log(chalk.yellow('No commands directory found to export.'));
+    console.log(logSymbols.warning, chalk.yellow('No commands directory found to export.'));
     return;
   }
 
   allCommands.push(...getParsedCommands(COMMANDS_FILE));
 
   if (allCommands.length === 0) {
-    console.log(chalk.yellow('No commands found to export.'));
+    console.log(logSymbols.warning, chalk.yellow('No commands found to export.'));
     return;
   }
 
@@ -33,7 +34,7 @@ const exportCommandsToJson = async () => {
     },
     ]);
   } catch (e) {
-    console.log(chalk.red(`Error during filename prompt: ${e.message}`));
+    console.log(logSymbols.error, chalk.red(`Error during filename prompt: ${e.message}`));
     return;
   }
 
@@ -49,15 +50,15 @@ const exportCommandsToJson = async () => {
   const resolvedCurrentDir = path.resolve('.');
 
   if (!resolvedExportPath.startsWith(resolvedCurrentDir)) {
-    console.log(chalk.red('Error: Export path is outside the current directory. Aborting.'));
+    console.log(logSymbols.error, chalk.red('Error: Export path is outside the current directory. Aborting.'));
     return;
   }
 
   try {
     fs.writeFileSync(exportFilePath, JSON.stringify(allCommands, null, 2));
-    console.log(chalk.green(`Successfully exported ${allCommands.length} commands to ${exportFilePath}`));
+    console.log(logSymbols.success, chalk.green(`Successfully exported ${allCommands.length} commands to ${exportFilePath}`));
   } catch (e) {
-    console.log(chalk.red(`Error exporting commands to JSON: ${e.message}`));
+    console.log(logSymbols.error, chalk.red(`Error exporting commands to JSON: ${e.message}`));
   }
 };
 

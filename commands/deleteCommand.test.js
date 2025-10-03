@@ -23,6 +23,7 @@ const { getCommandNames } = await import('./commandFinder.js');
 const inquirer = (await import('inquirer')).default;
 const fs = await import('node:fs');
 const { default: deleteCommand } = await import('./deleteCommand.js');
+const logSymbols = (await import('log-symbols')).default;
 
 describe('deleteCommand', () => {
   let consoleLogSpy;
@@ -48,7 +49,7 @@ describe('deleteCommand', () => {
     await deleteCommand();
 
     expect(fs.unlinkSync).toHaveBeenCalledWith(expect.stringContaining('git/commit.toml'));
-    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Successfully deleted command'));
+    expect(consoleLogSpy).toHaveBeenCalledWith(logSymbols.success, expect.stringContaining('Successfully deleted command'));
   });
 
   it('should clean up empty directories after deletion', async () => {
@@ -75,7 +76,7 @@ describe('deleteCommand', () => {
     await deleteCommand();
 
     expect(fs.unlinkSync).not.toHaveBeenCalled();
-    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Deletion cancelled'));
+    expect(consoleLogSpy).toHaveBeenCalledWith(logSymbols.info, expect.stringContaining('Deletion cancelled'));
   });
 
   it('should return to menu if user selects \'Go Back\'', async () => {
@@ -86,7 +87,7 @@ describe('deleteCommand', () => {
 
     expect(inquirer.prompt).toHaveBeenCalledTimes(1); // Should not ask for confirmation
     expect(fs.unlinkSync).not.toHaveBeenCalled();
-    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Returning to main menu'));
+    expect(consoleLogSpy).toHaveBeenCalledWith(logSymbols.info, expect.stringContaining('Returning to main menu'));
   });
 
   it('should show a message if no commands exist', async () => {
@@ -95,6 +96,6 @@ describe('deleteCommand', () => {
     await deleteCommand();
 
     expect(inquirer.prompt).not.toHaveBeenCalled();
-    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('No commands to delete'));
+    expect(consoleLogSpy).toHaveBeenCalledWith(logSymbols.warning, expect.stringContaining('No commands to delete'));
   });
 });

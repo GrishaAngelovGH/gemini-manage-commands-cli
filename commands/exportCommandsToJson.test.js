@@ -20,6 +20,7 @@ const { getParsedCommands } = await import('./commandFinder.js');
 const inquirer = (await import('inquirer')).default;
 const fs = await import('node:fs');
 const { default: exportCommandsToJson } = await import('./exportCommandsToJson.js');
+const logSymbols = (await import('log-symbols')).default;
 
 describe('exportCommandsToJson', () => {
   let consoleLogSpy;
@@ -47,7 +48,7 @@ describe('exportCommandsToJson', () => {
     const expectedFileContent = JSON.stringify(mockCommands, null, 2);
 
     expect(fs.writeFileSync).toHaveBeenCalledWith(expectedFilePath, expectedFileContent);
-    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Successfully exported'));
+    expect(consoleLogSpy).toHaveBeenCalledWith(logSymbols.success, expect.stringContaining('Successfully exported'));
   });
 
   it('should add .json extension if not provided', async () => {
@@ -67,7 +68,7 @@ describe('exportCommandsToJson', () => {
 
     expect(inquirer.prompt).not.toHaveBeenCalled();
     expect(fs.writeFileSync).not.toHaveBeenCalled();
-    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('No commands found to export'));
+    expect(consoleLogSpy).toHaveBeenCalledWith(logSymbols.warning, expect.stringContaining('No commands found to export'));
   });
 
   it('should block path traversal attempts', async () => {
@@ -77,6 +78,6 @@ describe('exportCommandsToJson', () => {
     await exportCommandsToJson();
 
     expect(fs.writeFileSync).not.toHaveBeenCalled();
-    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Export path is outside the current directory'));
+    expect(consoleLogSpy).toHaveBeenCalledWith(logSymbols.error, expect.stringContaining('Export path is outside the current directory'));
   });
 });

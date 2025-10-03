@@ -13,6 +13,7 @@ const fs = await import('node:fs');
 const path = await import('node:path');
 const { homedir } = await import('node:os');
 const { default: backupCommands } = await import('./backupCommands.js');
+const logSymbols = (await import('log-symbols')).default;
 
 const GEMINI_DIR = path.join(homedir(), '.gemini');
 const COMMANDS_FILE = path.join(GEMINI_DIR, 'commands');
@@ -42,7 +43,7 @@ describe('backupCommands', () => {
     expect(fs.cpSync).toHaveBeenCalledWith(COMMANDS_FILE, TMP_BACKUP_DIR, { recursive: true });
     expect(fs.rmSync).toHaveBeenCalledWith(BACKUP_DIR, { recursive: true, force: true });
     expect(fs.renameSync).toHaveBeenCalledWith(TMP_BACKUP_DIR, BACKUP_DIR);
-    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Successfully created backup'));
+    expect(consoleLogSpy).toHaveBeenCalledWith(logSymbols.success, expect.stringContaining('Successfully created backup'));
   });
 
   it('should create a backup when no old backup exists', () => {
@@ -56,7 +57,7 @@ describe('backupCommands', () => {
     expect(fs.cpSync).toHaveBeenCalledWith(COMMANDS_FILE, TMP_BACKUP_DIR, { recursive: true });
     expect(fs.rmSync).not.toHaveBeenCalled();
     expect(fs.renameSync).toHaveBeenCalledWith(TMP_BACKUP_DIR, BACKUP_DIR);
-    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Successfully created backup'));
+    expect(consoleLogSpy).toHaveBeenCalledWith(logSymbols.success, expect.stringContaining('Successfully created backup'));
   });
 
   it('should show a message if no commands directory exists', () => {
@@ -69,7 +70,7 @@ describe('backupCommands', () => {
     // Assert
     expect(fs.cpSync).not.toHaveBeenCalled();
     expect(fs.renameSync).not.toHaveBeenCalled();
-    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('No commands directory to backup'));
+    expect(consoleLogSpy).toHaveBeenCalledWith(logSymbols.warning, expect.stringContaining('No commands directory to backup'));
   });
 
   it('should handle errors during backup and clean up temp files', () => {
@@ -82,7 +83,7 @@ describe('backupCommands', () => {
     backupCommands();
 
     // Assert
-    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining(`Error creating backup: ${errorMessage}`));
+    expect(consoleLogSpy).toHaveBeenCalledWith(logSymbols.error, expect.stringContaining(`Error creating backup: ${errorMessage}`));
     // Check that cleanup was attempted
     expect(fs.rmSync).toHaveBeenCalledWith(TMP_BACKUP_DIR, { recursive: true, force: true });
   });

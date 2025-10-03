@@ -22,6 +22,7 @@ const { getCommandNames } = await import('./commandFinder.js');
 const inquirer = (await import('inquirer')).default;
 const fs = await import('node:fs');
 const { default: restoreCommands } = await import('./restoreCommands.js');
+const logSymbols = (await import('log-symbols')).default;
 
 describe('restoreCommands', () => {
   let consoleLogSpy, consoleErrorSpy;
@@ -42,14 +43,14 @@ describe('restoreCommands', () => {
   it('should show a message if no backup is found', async () => {
     fs.existsSync.mockReturnValue(false);
     await restoreCommands();
-    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('No backup found'));
+    expect(consoleLogSpy).toHaveBeenCalledWith(logSymbols.warning, expect.stringContaining('No backup found'));
   });
 
   describe('All commands', () => {
     it('should merge all commands from backup', async () => {
       inquirer.prompt.mockResolvedValueOnce({ RESTORE_SCOPE: 'All commands (merge with existing)' })
-        .mockResolvedValueOnce({ CONFIRM_RESTORE: true });
-
+                       .mockResolvedValueOnce({ CONFIRM_RESTORE: true });
+      
       fs.readdirSync.mockReturnValue([
         { name: 'test.toml', isDirectory: () => false },
       ]);
@@ -57,13 +58,13 @@ describe('restoreCommands', () => {
       await restoreCommands();
 
       expect(fs.copyFileSync).toHaveBeenCalled();
-      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Successfully merged all commands'));
+      expect(consoleLogSpy).toHaveBeenCalledWith(logSymbols.success, expect.stringContaining('Successfully merged all commands'));
     });
 
     it('should block path traversal when merging all commands', async () => {
       inquirer.prompt.mockResolvedValueOnce({ RESTORE_SCOPE: 'All commands (merge with existing)' })
-        .mockResolvedValueOnce({ CONFIRM_RESTORE: true });
-
+                       .mockResolvedValueOnce({ CONFIRM_RESTORE: true });
+      
       fs.readdirSync.mockReturnValue([
         { name: '../../something.toml', isDirectory: () => false },
       ]);
@@ -71,7 +72,7 @@ describe('restoreCommands', () => {
       await restoreCommands();
 
       expect(fs.copyFileSync).not.toHaveBeenCalled();
-      expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Malicious path detected'));
+      expect(consoleErrorSpy).toHaveBeenCalledWith(logSymbols.error, expect.stringContaining('Malicious path detected'));
     });
   });
 
@@ -90,7 +91,7 @@ describe('restoreCommands', () => {
         await restoreCommands();
   
         expect(fs.copyFileSync).toHaveBeenCalled();
-        expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Successfully restored command'));
+        expect(consoleLogSpy).toHaveBeenCalledWith(logSymbols.success, expect.stringContaining('Successfully restored command'));
       });
   
       it('should overwrite an existing single command', async () => {
@@ -106,7 +107,7 @@ describe('restoreCommands', () => {
         await restoreCommands();
   
         expect(fs.copyFileSync).toHaveBeenCalled();
-        expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Successfully restored and overwrote command'));
+        expect(consoleLogSpy).toHaveBeenCalledWith(logSymbols.success, expect.stringContaining('Successfully restored and overwrote command'));
       });
   
       it('should block path traversal for a single command', async () => {
@@ -119,6 +120,7 @@ describe('restoreCommands', () => {
         await restoreCommands();
   
         expect(fs.copyFileSync).not.toHaveBeenCalled();
-        expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('malicious path. Restore aborted'));
+        expect(consoleLogSpy).toHaveBeenCalledWith(logSymbols.error, expect.stringContaining('malicious path. Restore aborted'));
       });
-    });});
+    });
+  });

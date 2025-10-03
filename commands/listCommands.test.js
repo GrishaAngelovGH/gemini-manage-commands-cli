@@ -13,6 +13,7 @@ jest.unstable_mockModule('node:fs', () => ({
 const { getParsedCommands } = await import('./commandFinder.js');
 const fs = await import('node:fs');
 const { default: listCommands } = await import('./listCommands.js');
+const logSymbols = (await import('log-symbols')).default;
 
 describe('listCommands', () => {
   let consoleLogSpy;
@@ -45,7 +46,7 @@ describe('listCommands', () => {
 
     listCommands();
 
-    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Available commands:'));
+    expect(consoleLogSpy).toHaveBeenCalledWith(logSymbols.info, expect.stringContaining('Available commands:'));
     expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Command: test1'));
     expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Description: This is test 1'));
     expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Prompt:Prompt for test 1'));
@@ -59,7 +60,7 @@ describe('listCommands', () => {
 
     listCommands();
 
-    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('No commands found.'));
+    expect(consoleLogSpy).toHaveBeenCalledWith(logSymbols.warning, expect.stringContaining('No commands found.'));
   });
 
   it('should show a message when the commands directory does not exist', () => {
@@ -68,6 +69,6 @@ describe('listCommands', () => {
     listCommands();
 
     expect(getParsedCommands).not.toHaveBeenCalled();
-    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('No commands found.'));
+    expect(consoleLogSpy).toHaveBeenCalledWith(logSymbols.warning, expect.stringContaining('No commands found.'));
   });
 });

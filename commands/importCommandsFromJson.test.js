@@ -15,10 +15,10 @@ jest.unstable_mockModule('node:fs', () => ({
   mkdirSync: jest.fn(),
 }));
 
-// Await imports
 const inquirer = (await import('inquirer')).default;
 const fs = await import('node:fs');
 const { default: importCommandsFromJson } = await import('./importCommandsFromJson.js');
+const logSymbols = (await import('log-symbols')).default;
 
 describe('importCommandsFromJson', () => {
   let consoleLogSpy;
@@ -47,36 +47,36 @@ describe('importCommandsFromJson', () => {
       expect.stringContaining('new/cmd.toml'),
       expect.any(String)
     );
-    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Imported new command: new/cmd'));
+    expect(consoleLogSpy).toHaveBeenCalledWith(logSymbols.success, expect.stringContaining('Imported new command: new/cmd'));
   });
 
   it('should overwrite an existing command', async () => {
     fs.existsSync.mockReturnValue(true); // Command already exists
     inquirer.prompt.mockResolvedValueOnce({ SELECTED_FILE: 'import.json' })
-      .mockResolvedValueOnce({ CONFLICT_RESOLUTION: 'Overwrite' });
+                     .mockResolvedValueOnce({ CONFLICT_RESOLUTION: 'Overwrite' });
 
     await importCommandsFromJson();
 
     expect(fs.writeFileSync).toHaveBeenCalled();
-    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Overwrote command: new/cmd'));
+    expect(consoleLogSpy).toHaveBeenCalledWith(logSymbols.success, expect.stringContaining('Overwrote command: new/cmd'));
   });
 
   it('should skip an existing command', async () => {
     fs.existsSync.mockReturnValue(true);
     inquirer.prompt.mockResolvedValueOnce({ SELECTED_FILE: 'import.json' })
-      .mockResolvedValueOnce({ CONFLICT_RESOLUTION: 'Skip' });
+                     .mockResolvedValueOnce({ CONFLICT_RESOLUTION: 'Skip' });
 
     await importCommandsFromJson();
 
     expect(fs.writeFileSync).not.toHaveBeenCalled();
-    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Skipped command: new/cmd'));
+    expect(consoleLogSpy).toHaveBeenCalledWith(logSymbols.info, expect.stringContaining('Skipped command: new/cmd'));
   });
 
   it('should rename a command', async () => {
     fs.existsSync.mockReturnValue(true);
     inquirer.prompt.mockResolvedValueOnce({ SELECTED_FILE: 'import.json' })
-      .mockResolvedValueOnce({ CONFLICT_RESOLUTION: 'Rename' })
-      .mockResolvedValueOnce({ NEW_NAME: 'renamed/cmd' });
+                     .mockResolvedValueOnce({ CONFLICT_RESOLUTION: 'Rename' })
+                     .mockResolvedValueOnce({ NEW_NAME: 'renamed/cmd' });
 
     await importCommandsFromJson();
 
@@ -84,7 +84,7 @@ describe('importCommandsFromJson', () => {
       expect.stringContaining('renamed/cmd.toml'),
       expect.any(String)
     );
-    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Imported command as: renamed/cmd'));
+    expect(consoleLogSpy).toHaveBeenCalledWith(logSymbols.success, expect.stringContaining('Imported command as: renamed/cmd'));
   });
 
   it('should block path traversal on initial import', async () => {
@@ -95,24 +95,24 @@ describe('importCommandsFromJson', () => {
     await importCommandsFromJson();
 
     expect(fs.writeFileSync).not.toHaveBeenCalled();
-    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('malicious path and will be skipped'));
+    expect(consoleLogSpy).toHaveBeenCalledWith(logSymbols.error, expect.stringContaining('malicious path and will be skipped'));
   });
 
   it('should block path traversal on rename', async () => {
     fs.existsSync.mockReturnValue(true);
     inquirer.prompt.mockResolvedValueOnce({ SELECTED_FILE: 'import.json' })
-      .mockResolvedValueOnce({ CONFLICT_RESOLUTION: 'Rename' })
-      .mockResolvedValueOnce({ NEW_NAME: '../../something' });
+                     .mockResolvedValueOnce({ CONFLICT_RESOLUTION: 'Rename' })
+                     .mockResolvedValueOnce({ NEW_NAME: '../../something' });
 
     await importCommandsFromJson();
 
     expect(fs.writeFileSync).not.toHaveBeenCalled();
-    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('malicious path. Aborting'));
+    expect(consoleLogSpy).toHaveBeenCalledWith(logSymbols.error, expect.stringContaining('malicious path. Aborting'));
   });
 
   it('should show a message if no JSON files are found', async () => {
     fs.readdirSync.mockReturnValue([]);
     await importCommandsFromJson();
-    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('No JSON files found'));
+    expect(consoleLogSpy).toHaveBeenCalledWith(logSymbols.warning, expect.stringContaining('No JSON files found'));
   });
 });

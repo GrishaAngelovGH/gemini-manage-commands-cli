@@ -2,6 +2,7 @@ import chalk from 'chalk';
 import * as fs from 'node:fs';
 import path from 'node:path';
 import { homedir } from 'node:os';
+import logSymbols from 'log-symbols';
 
 const GEMINI_DIR = path.join(homedir(), '.gemini');
 const COMMANDS_FILE = path.join(GEMINI_DIR, 'commands');
@@ -11,7 +12,7 @@ const backupCommands = () => {
   const tmpBackupDir = path.join(GEMINI_DIR, 'commands_backup_tmp');
 
   if (!fs.existsSync(COMMANDS_FILE)) {
-    console.log(chalk.yellow('No commands directory to backup.'));
+    console.log(logSymbols.warning, chalk.yellow('No commands directory to backup.'));
     return;
   }
 
@@ -27,10 +28,10 @@ const backupCommands = () => {
     // 3. Move new backup into place.
     fs.renameSync(tmpBackupDir, backupDir);
 
-    console.log(chalk.green(`Successfully created backup at: ${backupDir}`));
+    console.log(logSymbols.success, chalk.green(`Successfully created backup at: ${backupDir}`));
 
   } catch (e) {
-    console.log(chalk.red(`Error creating backup: ${e.message}`));
+    console.log(logSymbols.error, chalk.red(`Error creating backup: ${e.message}`));
     // If any step fails, attempt to clean up the temporary directory.
     if (fs.existsSync(tmpBackupDir)) {
       fs.rmSync(tmpBackupDir, { recursive: true, force: true });

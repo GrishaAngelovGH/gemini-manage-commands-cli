@@ -4,6 +4,7 @@ import * as fs from 'node:fs';
 import path from 'node:path';
 import { homedir } from 'node:os';
 import { getCommandNames } from './commandFinder.js';
+import logSymbols from 'log-symbols';
 
 const GEMINI_DIR = path.join(homedir(), '.gemini');
 const COMMANDS_FILE = path.join(GEMINI_DIR, 'commands');
@@ -12,7 +13,7 @@ const restoreCommands = async () => {
   const backupDir = path.join(GEMINI_DIR, 'commands_backup');
 
   if (!fs.existsSync(backupDir)) {
-    console.log(chalk.yellow('No backup found to restore from.'));
+    console.log(logSymbols.warning, chalk.yellow('No backup found to restore from.'));
     return;
   }
 
@@ -25,12 +26,12 @@ const restoreCommands = async () => {
       choices: ['All commands (merge with existing)', 'A single command (merge)', 'Go Back'],
     },]);
   } catch (e) {
-    console.log(chalk.red(`Error during restore scope prompt: ${e.message}`));
+    console.log(logSymbols.error, chalk.red(`Error during restore scope prompt: ${e.message}`));
     return;
   }
 
   if (scopeAnswers.RESTORE_SCOPE === 'Go Back') {
-    console.log(chalk.yellow('Restore cancelled.'));
+    console.log(logSymbols.info, chalk.yellow('Restore cancelled.'));
     return;
   }
 
@@ -44,7 +45,7 @@ const restoreCommands = async () => {
         default: false,
       },]);
     } catch (e) {
-      console.log(chalk.red(`Error during restore confirmation prompt: ${e.message}`));
+      console.log(logSymbols.error, chalk.red(`Error during restore confirmation prompt: ${e.message}`));
       return;
     }
 
@@ -61,7 +62,7 @@ const restoreCommands = async () => {
           try {
             entries = fs.readdirSync(source, { withFileTypes: true });
           } catch (e) {
-            console.error(chalk.red(`Error reading backup directory ${source}: ${e.message}`));
+            console.error(logSymbols.error, chalk.red(`Error reading backup directory ${source}: ${e.message}`));
             return;
           }
 
@@ -75,7 +76,7 @@ const restoreCommands = async () => {
                   fs.mkdirSync(destinationPath, { recursive: true });
                 }
               } catch (e) {
-                console.error(chalk.red(`Error creating directory ${destinationPath}: ${e.message}`));
+                console.error(logSymbols.error, chalk.red(`Error creating directory ${destinationPath}: ${e.message}`));
                 return; // Skip this directory if it can't be created
               }
               mergeDirectories(sourcePath, destinationPath);
@@ -85,26 +86,26 @@ const restoreCommands = async () => {
               const resolvedDestinationPath = path.resolve(destinationPath);
 
               if (!resolvedDestinationPath.startsWith(resolvedDestinationDir)) {
-                console.error(chalk.red(`Error: Malicious path detected in backup. Cannot restore ${sourcePath}.`));
+                console.error(logSymbols.error, chalk.red(`Error: Malicious path detected in backup. Cannot restore ${sourcePath}.`));
                 return; // Stop processing this malicious entry
               }
 
               try {
                 fs.copyFileSync(sourcePath, destinationPath); // Overwrites if exists, copies if new
               } catch (e) {
-                console.error(chalk.red(`Error copying file ${sourcePath} to ${destinationPath}: ${e.message}`));
+                console.error(logSymbols.error, chalk.red(`Error copying file ${sourcePath} to ${destinationPath}: ${e.message}`));
               }
             }
           });
         };
 
         mergeDirectories(backupDir, COMMANDS_FILE);
-        console.log(chalk.green('Successfully merged all commands from backup.'));
+        console.log(logSymbols.success, chalk.green('Successfully merged all commands from backup.'));
       } catch (e) {
-        console.log(chalk.red(`Error merging commands: ${e.message}`));
+        console.log(logSymbols.error, chalk.red(`Error merging commands: ${e.message}`));
       }
     } else {
-      console.log(chalk.yellow('Restore cancelled.'));
+      console.log(logSymbols.info, chalk.yellow('Restore cancelled.'));
     }
   } else if (scopeAnswers.RESTORE_SCOPE === 'A single command (merge)') {
     const allBackupCommands = [];
@@ -112,7 +113,7 @@ const restoreCommands = async () => {
     allBackupCommands.push(...getCommandNames(backupDir));
 
     if (allBackupCommands.length === 0) {
-      console.log(chalk.yellow('No commands found in backup to restore.'));
+      console.log(logSymbols.warning, chalk.yellow('No commands found in backup to restore.'));
       return;
     }
 
@@ -125,12 +126,12 @@ const restoreCommands = async () => {
         choices: [...allBackupCommands, new inquirer.Separator(), 'Go Back'],
       },]);
     } catch (e) {
-      console.log(chalk.red(`Error during single command selection prompt: ${e.message}`));
+      console.log(logSymbols.error, chalk.red(`Error during single command selection prompt: ${e.message}`));
       return;
     }
 
     if (selectCommandAnswers.COMMAND_TO_RESTORE === 'Go Back') {
-      console.log(chalk.yellow('Restore cancelled.'));
+      console.log(logSymbols.info, chalk.yellow('Restore cancelled.'));
       return;
     }
 
@@ -148,7 +149,7 @@ const restoreCommands = async () => {
     const resolvedFilePath = path.resolve(fullActiveFilePath);
 
     if (!resolvedFilePath.startsWith(resolvedCommandsDir)) {
-      console.log(chalk.red(`Error: Command '${commandToRestore}' has a malicious path. Restore aborted.`));
+      console.log(logSymbols.error, chalk.red(`Error: Command '${commandToRestore}' has a malicious path. Restore aborted.`));
       return;
     }
 
@@ -158,7 +159,7 @@ const restoreCommands = async () => {
         fs.mkdirSync(commandActiveDirectory, { recursive: true });
       }
     } catch (e) {
-      console.log(chalk.red(`Error creating directory for command '${commandToRestore}': ${e.message}`));
+      console.log(logSymbols.error, chalk.red(`Error creating directory for command '${commandToRestore}': ${e.message}`));
       return;
     }
 
@@ -172,29 +173,29 @@ const restoreCommands = async () => {
           choices: ['Overwrite', 'Skip', 'Go Back'],
         },]);
       } catch (e) {
-        console.log(chalk.red(`Error during conflict resolution prompt for '${commandToRestore}': ${e.message}`));
+        console.log(logSymbols.error, chalk.red(`Error during conflict resolution prompt for '${commandToRestore}': ${e.message}`));
         return;
       }
 
       if (conflictAnswers.CONFLICT_RESOLUTION === 'Overwrite') {
         try {
           fs.copyFileSync(fullBackupFilePath, fullActiveFilePath);
-          console.log(chalk.green(`Successfully restored and overwrote command: ${commandToRestore}`));
+          console.log(logSymbols.success, chalk.green(`Successfully restored and overwrote command: ${commandToRestore}`));
         } catch (e) {
-          console.log(chalk.red(`Error overwriting command '${commandToRestore}': ${e.message}`));
+          console.log(logSymbols.error, chalk.red(`Error overwriting command '${commandToRestore}': ${e.message}`));
         }
       } else if (conflictAnswers.CONFLICT_RESOLUTION === 'Skip') {
-        console.log(chalk.yellow(`Skipped restoring command: ${commandToRestore}`));
+        console.log(logSymbols.info, chalk.yellow(`Skipped restoring command: ${commandToRestore}`));
       } else if (conflictAnswers.CONFLICT_RESOLUTION === 'Go Back') {
-        console.log(chalk.yellow('Restore cancelled.'));
+        console.log(logSymbols.info, chalk.yellow('Restore cancelled.'));
         return;
       }
     } else {
       try {
         fs.copyFileSync(fullBackupFilePath, fullActiveFilePath);
-        console.log(chalk.green(`Successfully restored command: ${commandToRestore}`));
+        console.log(logSymbols.success, chalk.green(`Successfully restored command: ${commandToRestore}`));
       } catch (e) {
-        console.log(chalk.red(`Error restoring command '${commandToRestore}': ${e.message}`));
+        console.log(logSymbols.error, chalk.red(`Error restoring command '${commandToRestore}': ${e.message}`));
       }
     }
   }
