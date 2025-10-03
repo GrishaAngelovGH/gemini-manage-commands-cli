@@ -7,6 +7,7 @@ import * as fs from 'node:fs';
 import path from 'node:path';
 import { homedir } from 'node:os';
 import logSymbols from 'log-symbols';
+import gradient from 'gradient-string';
 
 import listCommands from './commands/listCommands.js';
 import deleteCommand from './commands/deleteCommand.js';
@@ -21,7 +22,7 @@ const COMMANDS_FILE = path.join(GEMINI_DIR, 'commands');
 
 const init = () => {
   console.log(
-    chalk.green(
+    gradient.retro(
       figlet.textSync('Gemini Manage Commands CLI', {
         font: 'Standard',
         horizontalLayout: 'default',
