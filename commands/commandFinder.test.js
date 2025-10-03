@@ -29,7 +29,7 @@ describe('commandFinder', () => {
   let consoleErrorSpy;
 
   beforeEach(() => {
-    consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => { });
     jest.clearAllMocks();
 
     fs.existsSync.mockImplementation(p => mockFileSystem[p] !== undefined);
@@ -39,8 +39,8 @@ describe('commandFinder', () => {
     fs.readdirSync.mockImplementation(p => {
       const entryNames = mockFileSystem[p]?.entries || [];
       return entryNames.map(name => ({
-          name,
-          isDirectory: () => mockFileSystem[`${p}/${name}`]?.type === 'dir',
+        name,
+        isDirectory: () => mockFileSystem[`${p}/${name}`]?.type === 'dir',
       }));
     });
     fs.readFileSync.mockImplementation(p => mockFileSystem[p]?.content || '');

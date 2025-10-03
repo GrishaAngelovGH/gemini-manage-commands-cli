@@ -52,8 +52,9 @@ describe('importCommandsFromJson', () => {
 
   it('should overwrite an existing command', async () => {
     fs.existsSync.mockReturnValue(true); // Command already exists
-    inquirer.prompt.mockResolvedValueOnce({ SELECTED_FILE: 'import.json' })
-                     .mockResolvedValueOnce({ CONFLICT_RESOLUTION: 'Overwrite' });
+    inquirer.prompt
+      .mockResolvedValueOnce({ SELECTED_FILE: 'import.json' })
+      .mockResolvedValueOnce({ CONFLICT_RESOLUTION: 'Overwrite' });
 
     await importCommandsFromJson();
 
@@ -63,8 +64,9 @@ describe('importCommandsFromJson', () => {
 
   it('should skip an existing command', async () => {
     fs.existsSync.mockReturnValue(true);
-    inquirer.prompt.mockResolvedValueOnce({ SELECTED_FILE: 'import.json' })
-                     .mockResolvedValueOnce({ CONFLICT_RESOLUTION: 'Skip' });
+    inquirer.prompt
+      .mockResolvedValueOnce({ SELECTED_FILE: 'import.json' })
+      .mockResolvedValueOnce({ CONFLICT_RESOLUTION: 'Skip' });
 
     await importCommandsFromJson();
 
@@ -74,9 +76,10 @@ describe('importCommandsFromJson', () => {
 
   it('should rename a command', async () => {
     fs.existsSync.mockReturnValue(true);
-    inquirer.prompt.mockResolvedValueOnce({ SELECTED_FILE: 'import.json' })
-                     .mockResolvedValueOnce({ CONFLICT_RESOLUTION: 'Rename' })
-                     .mockResolvedValueOnce({ NEW_NAME: 'renamed/cmd' });
+    inquirer.prompt
+      .mockResolvedValueOnce({ SELECTED_FILE: 'import.json' })
+      .mockResolvedValueOnce({ CONFLICT_RESOLUTION: 'Rename' })
+      .mockResolvedValueOnce({ NEW_NAME: 'renamed/cmd' });
 
     await importCommandsFromJson();
 
@@ -85,6 +88,23 @@ describe('importCommandsFromJson', () => {
       expect.any(String)
     );
     expect(consoleLogSpy).toHaveBeenCalledWith(logSymbols.success, expect.stringContaining('Imported command as: renamed/cmd'));
+  });
+
+  it('should handle errors when mkdirSync fails during command import', async () => {
+    // Ensure the import.json file exists
+    fs.existsSync.mockImplementation((p) => {
+      if (p.endsWith('import.json')) return true;
+      // Simulate that the command directory does not exist, so mkdirSync is called
+      return false;
+    });
+    fs.mkdirSync.mockImplementation(() => {
+      throw new Error('Failed to create directory');
+    });
+    inquirer.prompt.mockResolvedValue({ SELECTED_FILE: 'import.json' });
+
+    await importCommandsFromJson();
+
+    expect(consoleLogSpy).toHaveBeenCalledWith(logSymbols.error, expect.stringContaining('Error creating directory for command'));
   });
 
   it('should block path traversal on initial import', async () => {
@@ -100,9 +120,10 @@ describe('importCommandsFromJson', () => {
 
   it('should block path traversal on rename', async () => {
     fs.existsSync.mockReturnValue(true);
-    inquirer.prompt.mockResolvedValueOnce({ SELECTED_FILE: 'import.json' })
-                     .mockResolvedValueOnce({ CONFLICT_RESOLUTION: 'Rename' })
-                     .mockResolvedValueOnce({ NEW_NAME: '../../something' });
+    inquirer.prompt
+      .mockResolvedValueOnce({ SELECTED_FILE: 'import.json' })
+      .mockResolvedValueOnce({ CONFLICT_RESOLUTION: 'Rename' })
+      .mockResolvedValueOnce({ NEW_NAME: '../../something' });
 
     await importCommandsFromJson();
 

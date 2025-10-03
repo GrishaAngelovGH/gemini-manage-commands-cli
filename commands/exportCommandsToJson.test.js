@@ -26,7 +26,7 @@ describe('exportCommandsToJson', () => {
   let consoleLogSpy;
 
   beforeEach(() => {
-    consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+    consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => { });
     jest.clearAllMocks();
     fs.existsSync.mockReturnValue(true);
     fs.lstatSync.mockReturnValue({ isDirectory: () => true });

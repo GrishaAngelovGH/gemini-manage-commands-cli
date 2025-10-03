@@ -29,7 +29,7 @@ describe('deleteCommand', () => {
   let consoleLogSpy;
 
   beforeEach(() => {
-    consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+    consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => { });
     jest.clearAllMocks();
     // Default mock for fs.existsSync to avoid breaking other tests
     fs.existsSync.mockReturnValue(true);
@@ -43,8 +43,9 @@ describe('deleteCommand', () => {
   it('should delete a command after confirmation', async () => {
     const commandToDelete = 'git/commit';
     getCommandNames.mockReturnValue([commandToDelete, 'other/command']);
-    inquirer.prompt.mockResolvedValueOnce({ COMMAND_TO_DELETE: commandToDelete })
-                     .mockResolvedValueOnce({ CONFIRM_DELETE: true });
+    inquirer.prompt
+      .mockResolvedValueOnce({ COMMAND_TO_DELETE: commandToDelete })
+      .mockResolvedValueOnce({ CONFIRM_DELETE: true });
 
     await deleteCommand();
 
@@ -55,9 +56,10 @@ describe('deleteCommand', () => {
   it('should clean up empty directories after deletion', async () => {
     const commandToDelete = 'git/commit';
     getCommandNames.mockReturnValue([commandToDelete]);
-    inquirer.prompt.mockResolvedValueOnce({ COMMAND_TO_DELETE: commandToDelete })
-                     .mockResolvedValueOnce({ CONFIRM_DELETE: true });
-    
+    inquirer.prompt
+      .mockResolvedValueOnce({ COMMAND_TO_DELETE: commandToDelete })
+      .mockResolvedValueOnce({ CONFIRM_DELETE: true });
+
     // After unlink, readdir for the parent dir is empty
     fs.readdirSync.mockReturnValue([]);
 
@@ -70,8 +72,9 @@ describe('deleteCommand', () => {
   it('should cancel deletion if user does not confirm', async () => {
     const commandToDelete = 'git/commit';
     getCommandNames.mockReturnValue([commandToDelete]);
-    inquirer.prompt.mockResolvedValueOnce({ COMMAND_TO_DELETE: commandToDelete })
-                     .mockResolvedValueOnce({ CONFIRM_DELETE: false });
+    inquirer.prompt
+      .mockResolvedValueOnce({ COMMAND_TO_DELETE: commandToDelete })
+      .mockResolvedValueOnce({ CONFIRM_DELETE: false });
 
     await deleteCommand();
 

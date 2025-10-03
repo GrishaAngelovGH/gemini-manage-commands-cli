@@ -48,9 +48,10 @@ describe('restoreCommands', () => {
 
   describe('All commands', () => {
     it('should merge all commands from backup', async () => {
-      inquirer.prompt.mockResolvedValueOnce({ RESTORE_SCOPE: 'All commands (merge with existing)' })
-                       .mockResolvedValueOnce({ CONFIRM_RESTORE: true });
-      
+      inquirer.prompt
+        .mockResolvedValueOnce({ RESTORE_SCOPE: 'All commands (merge with existing)' })
+        .mockResolvedValueOnce({ CONFIRM_RESTORE: true });
+
       fs.readdirSync.mockReturnValue([
         { name: 'test.toml', isDirectory: () => false },
       ]);
@@ -61,10 +62,27 @@ describe('restoreCommands', () => {
       expect(consoleLogSpy).toHaveBeenCalledWith(logSymbols.success, expect.stringContaining('Successfully merged all commands'));
     });
 
+    it('should handle errors when readdirSync fails during all commands merge', async () => {
+      inquirer.prompt
+        .mockResolvedValueOnce({ RESTORE_SCOPE: 'All commands (merge with existing)' })
+        .mockResolvedValueOnce({ CONFIRM_RESTORE: true });
+
+      const errorMessage = 'Permission denied';
+      fs.readdirSync.mockImplementation(() => {
+        throw new Error(errorMessage);
+      });
+
+      await restoreCommands();
+
+      expect(consoleErrorSpy).toHaveBeenCalledWith(logSymbols.error, expect.stringContaining(`Error reading backup directory`));
+      expect(consoleErrorSpy).toHaveBeenCalledWith(logSymbols.error, expect.stringContaining(errorMessage));
+    });
+
     it('should block path traversal when merging all commands', async () => {
-      inquirer.prompt.mockResolvedValueOnce({ RESTORE_SCOPE: 'All commands (merge with existing)' })
-                       .mockResolvedValueOnce({ CONFIRM_RESTORE: true });
-      
+      inquirer.prompt
+        .mockResolvedValueOnce({ RESTORE_SCOPE: 'All commands (merge with existing)' })
+        .mockResolvedValueOnce({ CONFIRM_RESTORE: true });
+
       fs.readdirSync.mockReturnValue([
         { name: '../../something.toml', isDirectory: () => false },
       ]);
@@ -76,51 +94,51 @@ describe('restoreCommands', () => {
     });
   });
 
-    describe('Single command', () => {
-      const commandToRestore = 'my/command';
-  
-      it('should restore a single command', async () => {
-        getCommandNames.mockReturnValue([commandToRestore]);
-        inquirer.prompt
-          .mockResolvedValueOnce({ RESTORE_SCOPE: 'A single command (merge)' })
-          .mockResolvedValueOnce({ COMMAND_TO_RESTORE: commandToRestore });
-        
-        // Mock that the active command does not exist, but the backup dir does
-        fs.existsSync.mockImplementation(p => !p.includes(commandToRestore));
-  
-        await restoreCommands();
-  
-        expect(fs.copyFileSync).toHaveBeenCalled();
-        expect(consoleLogSpy).toHaveBeenCalledWith(logSymbols.success, expect.stringContaining('Successfully restored command'));
-      });
-  
-      it('should overwrite an existing single command', async () => {
-        getCommandNames.mockReturnValue([commandToRestore]);
-        inquirer.prompt
-          .mockResolvedValueOnce({ RESTORE_SCOPE: 'A single command (merge)' })
-          .mockResolvedValueOnce({ COMMAND_TO_RESTORE: commandToRestore })
-          .mockResolvedValueOnce({ CONFLICT_RESOLUTION: 'Overwrite' });
-        
-        // Mock that the active command DOES exist
-        fs.existsSync.mockReturnValue(true);
-  
-        await restoreCommands();
-  
-        expect(fs.copyFileSync).toHaveBeenCalled();
-        expect(consoleLogSpy).toHaveBeenCalledWith(logSymbols.success, expect.stringContaining('Successfully restored and overwrote command'));
-      });
-  
-      it('should block path traversal for a single command', async () => {
-        const maliciousCommand = '../../something';
-        getCommandNames.mockReturnValue([maliciousCommand]);
-        inquirer.prompt
-          .mockResolvedValueOnce({ RESTORE_SCOPE: 'A single command (merge)' })
-          .mockResolvedValueOnce({ COMMAND_TO_RESTORE: maliciousCommand });
-  
-        await restoreCommands();
-  
-        expect(fs.copyFileSync).not.toHaveBeenCalled();
-        expect(consoleLogSpy).toHaveBeenCalledWith(logSymbols.error, expect.stringContaining('malicious path. Restore aborted'));
-      });
+  describe('Single command', () => {
+    const commandToRestore = 'my/command';
+
+    it('should restore a single command', async () => {
+      getCommandNames.mockReturnValue([commandToRestore]);
+      inquirer.prompt
+        .mockResolvedValueOnce({ RESTORE_SCOPE: 'A single command (merge)' })
+        .mockResolvedValueOnce({ COMMAND_TO_RESTORE: commandToRestore });
+
+      // Mock that the active command does not exist, but the backup dir does
+      fs.existsSync.mockImplementation(p => !p.includes(commandToRestore));
+
+      await restoreCommands();
+
+      expect(fs.copyFileSync).toHaveBeenCalled();
+      expect(consoleLogSpy).toHaveBeenCalledWith(logSymbols.success, expect.stringContaining('Successfully restored command'));
+    });
+
+    it('should overwrite an existing single command', async () => {
+      getCommandNames.mockReturnValue([commandToRestore]);
+      inquirer.prompt
+        .mockResolvedValueOnce({ RESTORE_SCOPE: 'A single command (merge)' })
+        .mockResolvedValueOnce({ COMMAND_TO_RESTORE: commandToRestore })
+        .mockResolvedValueOnce({ CONFLICT_RESOLUTION: 'Overwrite' });
+
+      // Mock that the active command DOES exist
+      fs.existsSync.mockReturnValue(true);
+
+      await restoreCommands();
+
+      expect(fs.copyFileSync).toHaveBeenCalled();
+      expect(consoleLogSpy).toHaveBeenCalledWith(logSymbols.success, expect.stringContaining('Successfully restored and overwrote command'));
+    });
+
+    it('should block path traversal for a single command', async () => {
+      const maliciousCommand = '../../something';
+      getCommandNames.mockReturnValue([maliciousCommand]);
+      inquirer.prompt
+        .mockResolvedValueOnce({ RESTORE_SCOPE: 'A single command (merge)' })
+        .mockResolvedValueOnce({ COMMAND_TO_RESTORE: maliciousCommand });
+
+      await restoreCommands();
+
+      expect(fs.copyFileSync).not.toHaveBeenCalled();
+      expect(consoleLogSpy).toHaveBeenCalledWith(logSymbols.error, expect.stringContaining('malicious path. Restore aborted'));
     });
   });
+});

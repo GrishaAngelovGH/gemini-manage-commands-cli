@@ -19,12 +19,12 @@ const listCommands = () => {
     }
 
     commands.forEach(command => {
-      console.log(chalk.yellow(`Command: ${command.name}`));
+      console.log(chalk.yellow(`\n  Command: ${command.name}\n`));
       if (command.description) {
-        console.log(chalk.cyan(`  Description: ${command.description}`));
+        console.log(chalk.cyan(`  Description:\n  ${command.description}\n`));
       }
       if (command.prompt) {
-        console.log(chalk.magenta(`  Prompt:${command.prompt}`));
+        console.log(chalk.magenta(`  Prompt:\n${command.prompt}\n`));
       }
       console.log(chalk.gray('────────────────────────────────────────'));
     });
