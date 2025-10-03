@@ -1,6 +1,6 @@
 import chalk from 'chalk';
 import inquirer from 'inquirer';
-import fs from 'node:fs';
+import * as fs from 'node:fs';
 import path from 'node:path';
 import { homedir } from 'node:os';
 import { getParsedCommands } from './commandFinder.js';

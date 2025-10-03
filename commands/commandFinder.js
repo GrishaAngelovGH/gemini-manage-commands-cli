@@ -1,6 +1,6 @@
-import fs from 'node:fs';
+import * as fs from 'node:fs';
 import path from 'node:path';
-import toml from '@iarna/toml';
+import * as toml from '@iarna/toml';
 
 const getCommandNames = (baseDir, currentPath = '', allNames = []) => {
   if (!fs.existsSync(baseDir) || !fs.lstatSync(baseDir).isDirectory()) {
