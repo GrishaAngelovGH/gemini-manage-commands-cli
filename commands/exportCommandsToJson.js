@@ -29,7 +29,7 @@ const exportCommandsToJson = async () => {
     answers = await inquirer.prompt([{
       name: 'FILENAME',
       type: 'input',
-      message: 'Enter the filename for the JSON export (e.g., my_commands.json):',
+      message: `Enter the filename for the JSON export ${chalk.gray('(Press Enter for default, or type filename with/without extension)')}:`,
       default: 'commands_export.json',
     },
     ]);
